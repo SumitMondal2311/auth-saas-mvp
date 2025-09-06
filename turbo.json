@@ -10,6 +10,23 @@
             "env": ["PORT", "API_ORIGIN", "WEB_ORIGIN"],
             "outputs": ["dist/**"]
         },
+        "@repo/database#build": {
+            "dependsOn": ["^build"],
+            "outputs": ["dist"]
+        },
+        "db:deploy": {
+            "cache": false
+        },
+        "db:migrate": {
+            "cache": false,
+            "persistent": true
+        },
+        "db:generate": {
+            "cache": false
+        },
+        "db:push": {
+            "cache": false
+        },
         "check-types": {
             "dependsOn": ["^check-types"]
         },

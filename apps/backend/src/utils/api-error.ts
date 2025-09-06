@@ -17,6 +17,7 @@ export class APIError extends Error {
 
     toJSON() {
         return {
+            status: "failure",
             name: this.name,
             statusCode: this.statusCode,
             message: this.message,

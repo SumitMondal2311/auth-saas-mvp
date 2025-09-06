@@ -19,6 +19,7 @@
         "morgan": "^1.10.0"
     },
     "devDependencies": {
+        "@repo/database": "workspace:^",
         "@repo/tsconfig": "workspace:^",
         "@types/cookie-parser": "^1.4.9",
         "@types/cors": "^2.8.19",

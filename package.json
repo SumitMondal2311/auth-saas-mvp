@@ -2,18 +2,31 @@
     "name": "auth-saas-mvp",
     "private": true,
     "scripts": {
+        "build": "turbo build",
+        "check-types": "turbo check-types",
+        "clean": "turbo clean",
+        "dev": "turbo dev",
         "format": "prettier --write \"**/*.{json,js,mjs,ts,jsx,tsx}\"",
-        "prepare": "husky"
+        "lint": "eslint . --ext .tx,.tsx",
+        "prepare": "husky",
+        "start": "turbo start",
+        "start:dev": "turbo start:dev"
     },
     "lint-staged": {
         "**/*.{json,js,mjs,ts,jsx,tsx}": "prettier --write"
     },
+    "dependencies": {
+        "dotenv": "^17.2.2",
+        "zod": "^4.1.5"
+    },
     "devDependencies": {
+        "eslint": "^9.35.0",
         "husky": "^9.1.7",
         "lint-staged": "^16.1.6",
         "prettier": "^3.6.2",
         "prettier-plugin-packagejson": "^2.5.19",
-        "turbo": "^2.5.6"
+        "turbo": "^2.5.6",
+        "typescript": "^5.9.2"
     },
     "packageManager": "pnpm@10.15.1",
     "engines": {

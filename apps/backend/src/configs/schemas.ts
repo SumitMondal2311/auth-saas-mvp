@@ -5,15 +5,20 @@ export const envSchema = z
         NODE_ENV: z.enum(["development", "test", "production"]),
         PORT: z.string().transform(Number).default(4321),
         DATABASE_URL: z.string(),
-        WEB_ORIGIN: z.url(),
         REDIS_URL: z.string(),
+        WEB_ORIGIN: z.url(),
         API_ORIGIN: z.url().optional(),
+        ACCESS_TOKEN_EXPIRY: z.string().transform(Number),
+        JWT_AUD: z.string(),
+        JWT_ISS: z.string(),
+        JWT_KID: z.string(),
         EMAIL_VERIFICATION_TOKEN_EXPIRY: z.string().transform(Number),
         DATABASE_MAX_RETRIES: z.string().transform(Number),
+        REFRESH_TOKEN_EXPIRY: z.string().transform(Number),
     })
     .superRefine((arg, ctx) => {
         if (!arg.API_ORIGIN) {
-            if (arg.NODE_ENV == "production") {
+            if (arg.NODE_ENV === "production") {
                 ctx.addIssue({
                     message: "Invalid input: expected string, received undefined",
                     code: "custom",
@@ -24,6 +29,10 @@ export const envSchema = z
             }
         }
     });
+
+export const verificationCodeSchema = z.object({
+    code: z.string().min(6, "Incorrect code").max(6, "Incorrect code"),
+});
 
 export const authSchema = z.object({
     email: z.email("Invalid email").transform((email) => email.toLowerCase()),

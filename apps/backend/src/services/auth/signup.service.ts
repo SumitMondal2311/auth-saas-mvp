@@ -3,6 +3,7 @@ import { hash } from "argon2";
 import { randomUUID } from "crypto";
 import { env } from "../../configs/env.js";
 import { redis } from "../../lib/redis.js";
+import { VerifyEmailPayload } from "../../types/verify-email-payload.js";
 import { APIError } from "../../utils/api-error.js";
 import { generateOTP } from "../../utils/generate-otp.js";
 
@@ -29,7 +30,7 @@ export const signupService = async ({
     if (emailAddressRecord) {
         if (emailAddressRecord.isVerified) {
             throw new APIError(409, {
-                message: "Provided email address is already in use",
+                message: "Email is already in use",
             });
         }
     } else {
@@ -82,7 +83,7 @@ export const signupService = async ({
         JSON.stringify({
             email,
             verificationCode,
-        }),
+        } as VerifyEmailPayload),
         "EX",
         env.EMAIL_VERIFICATION_TOKEN_EXPIRY
     );

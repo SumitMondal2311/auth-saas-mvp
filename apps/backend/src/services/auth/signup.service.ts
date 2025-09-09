@@ -7,85 +7,33 @@ import { VerifyEmailPayload } from "../../types/verify-email-payload.js";
 import { APIError } from "../../utils/api-error.js";
 import { generateOTP } from "../../utils/generate-otp.js";
 
-export const signupService = async ({
-    ipAddress,
-    userAgent,
-    email,
-    password,
-}: {
-    ipAddress?: string;
-    userAgent?: string;
-    email: string;
-    password: string;
-}): Promise<string> => {
+export const signupService = async (email: string, password: string): Promise<string> => {
     const emailAddressRecord = await prisma.emailAddress.findUnique({
         where: {
             email,
         },
         select: {
-            isVerified: true,
+            id: true,
         },
     });
 
     if (emailAddressRecord) {
-        if (emailAddressRecord.isVerified) {
-            throw new APIError(409, {
-                message: "Email is already in use",
-            });
-        }
-    } else {
-        await prisma.$transaction(async (tx) => {
-            const newUser = await tx.user.create({
-                data: {
-                    id: randomUUID(),
-                },
-            });
-            await tx.emailAddress.create({
-                data: {
-                    email,
-                    user: {
-                        connect: {
-                            id: newUser.id,
-                        },
-                    },
-                },
-            });
-            await tx.account.create({
-                data: {
-                    providerUserId: email,
-                    hashedPassword: await hash(password),
-                    user: {
-                        connect: {
-                            id: newUser.id,
-                        },
-                    },
-                },
-            });
-            await tx.auditLog.create({
-                data: {
-                    event: "ACCOUNT_CREATED",
-                    ipAddress,
-                    userAgent,
-                    user: {
-                        connect: {
-                            id: newUser.id,
-                        },
-                    },
-                },
-            });
+        throw new APIError(409, {
+            message: "Email is already registered",
         });
     }
 
     const verificationCode = generateOTP(6);
     const token = randomUUID();
     await redis.set(
-        `verify-email:${token}`,
+        `email-verification:${token}`,
         JSON.stringify({
+            hashedPassword: await hash(password),
             email,
             verificationCode,
         } as VerifyEmailPayload),
         "EX",
-        env.EMAIL_VERIFICATION_TOKEN_EXPIRY
+        env.EMAIL_VERIFICATION_CODE_EXPIRY
     );
 
     return token;

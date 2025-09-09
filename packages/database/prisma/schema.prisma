@@ -12,7 +12,6 @@ datasource db {
 
 enum UserStatus {
   ACTIVE
-  VERIFICATION_PENDING
   DELETION_PENDING
 }
 
@@ -37,12 +36,18 @@ enum MfaType {
 
 enum AuditEvent {
   ACCOUNT_CREATED
-  LOGGED_IN
   EMAIL_VERIFIED
-  SETUP_MFA
+  MFA_ENABLED
+  LOGGED_IN
   MFA_DISABLED
+  LOGIN_FAILED
   PASSWORD_CHANGED
   LOGGED_OUT
+  EMAIL_UPDATED
+  EMAIL_ADDED
+  ACCOUNT_ADDED
+  EMAIL_DELETED
+  ACCOUNT_DELETED
 }
 
 // ==================== Website Models ====================
@@ -50,7 +55,7 @@ enum AuditEvent {
 model User {
   id           String     @id() @default(uuid()) @db.Uuid
   isMfaEnabled Boolean    @default(false)
-  status       UserStatus @default(VERIFICATION_PENDING)
+  status       UserStatus @default(ACTIVE)
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
@@ -80,9 +85,9 @@ model Account {
 model EmailAddress {
   id         String   @id @default(uuid()) @db.Uuid
   userId     String   @db.Uuid
-  isVerified Boolean  @default(false)
+  isVerified Boolean  @default(true)
   email      String   @unique @db.VarChar(320)
-  isPrimary  Boolean  @default(false)
+  isPrimary  Boolean
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 

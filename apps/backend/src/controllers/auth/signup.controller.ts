@@ -5,7 +5,6 @@ import { authSchema } from "../../configs/schemas.js";
 import { signupService } from "../../services/auth/signup.service.js";
 import { APIError } from "../../utils/api-error.js";
 import { handleAsync } from "../../utils/handle-async.js";
-import { normalizedIP } from "../../utils/normalized-ip.js";
 
 const signupControllerSync = async (req: Request, res: Response, next: NextFunction) => {
     const parsedSchema = authSchema.safeParse(req.body);
@@ -17,19 +16,14 @@ const signupControllerSync = async (req: Request, res: Response, next: NextFunct
         );
     }
 
-    const { email, password } = parsedSchema.data;
-    const token = await signupService({
-        userAgent: req.headers["user-agent"],
-        ipAddress: normalizedIP(req.ip || "unknown"),
-        email,
-        password,
-    });
+    const { password, email } = parsedSchema.data;
+    const token = await signupService(email, password);
 
     res.status(201)
         .cookie("__HOST-email_verification", token, {
             secure: IS_PRODUCTION,
             httpOnly: true,
-            maxAge: env.EMAIL_VERIFICATION_TOKEN_EXPIRY * 1000,
+            maxAge: env.EMAIL_VERIFICATION_CODE_EXPIRY * 1000,
             sameSite: "strict",
         })
         .json({

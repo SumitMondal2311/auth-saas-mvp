@@ -12,7 +12,7 @@ export const envSchema = z
         JWT_AUD: z.string(),
         JWT_ISS: z.string(),
         JWT_KID: z.string(),
-        EMAIL_VERIFICATION_TOKEN_EXPIRY: z.string().transform(Number),
+        EMAIL_VERIFICATION_CODE_EXPIRY: z.string().transform(Number),
         DATABASE_MAX_RETRIES: z.string().transform(Number),
         REFRESH_TOKEN_EXPIRY: z.string().transform(Number),
     })
@@ -31,15 +31,14 @@ export const envSchema = z
     });
 
 export const verificationCodeSchema = z.object({
-    code: z.string().min(6, "Incorrect code").max(6, "Incorrect code"),
+    code: z.string().nonempty("Code required").min(6, "Incorrect code").max(6, "Incorrect code"),
 });
 
 export const authSchema = z.object({
     email: z.email("Invalid email").transform((email) => email.toLowerCase()),
     password: z
         .string()
-        .trim()
-        .min(12, "Password must contain atleast 12 characters")
+        .min(12, "Password must contain at least 12 characters")
         .regex(/[0-9]/, "Password must contain a digit")
         .regex(/[^a-z0-9A-Z]/, "Password must contain a speacial character"),
 });

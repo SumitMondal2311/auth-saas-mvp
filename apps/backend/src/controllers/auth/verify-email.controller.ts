@@ -22,7 +22,7 @@ export const verifyEmailController = {
 
         const email = await verifyEmailService.GET(token);
 
-        res.status(202).json({
+        res.status(200).json({
             email,
         });
     }),
@@ -31,7 +31,7 @@ export const verifyEmailController = {
         if (!token) {
             return next(
                 new APIError(400, {
-                    message: "Invalid or missing token",
+                    message: "Missing token",
                 })
             );
         }
@@ -55,7 +55,7 @@ export const verifyEmailController = {
         });
 
         res.status(200)
-            .cookie("__HOST-auth-session", refreshToken, {
+            .cookie("__HOST-auth_session", refreshToken, {
                 secure: IS_PRODUCTION,
                 httpOnly: true,
                 maxAge: env.REFRESH_TOKEN_EXPIRY * 1000,
@@ -65,13 +65,12 @@ export const verifyEmailController = {
             .json({
                 accessToken: await signToken(
                     {
-                        typ: "access",
                         sub: userId,
                         sid: sessionId,
                     },
                     addDurationToNow(env.ACCESS_TOKEN_EXPIRY * 1000)
                 ),
-                message: "Email verification successful",
+                message: "Email verified successfully",
             });
     }),
 };

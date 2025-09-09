@@ -1,4 +1,4 @@
-import { prisma } from "@repo/database";
+import { AuditEvent, prisma } from "@repo/database";
 import { randomUUID } from "crypto";
 import { env } from "../../configs/env.js";
 import { signToken } from "../../lib/jwt.js";
@@ -24,42 +24,23 @@ export const verifyEmailService = {
         userId: string;
         sessionId: string;
     }> => {
-        const data = await redis.get(`verify-email:${token}`);
+        const data = await redis.get(`email-verification:${token}`);
         if (!data) {
             throw new APIError(400, {
                 message: "Invalid or expired token",
             });
         }
 
-        const { email, verificationCode } = JSON.parse(data) as VerifyEmailPayload;
-        const emailAddressRecord = await prisma.emailAddress.findFirst({
-            where: {
-                email,
-                isVerified: false,
-            },
-            select: {
-                isVerified: true,
-                id: true,
-                userId: true,
-            },
-        });
-
-        if (!emailAddressRecord) {
-            throw new APIError(400, {
-                message: "Email might already be verified",
-            });
-        }
-
+        const { hashedPassword, email, verificationCode } = JSON.parse(data) as VerifyEmailPayload;
         if (!constantTimeCompare(code, verificationCode)) {
             throw new APIError(400, {
                 message: "Incorrect code",
             });
         }
 
-        const { id: emailAddressId, userId } = emailAddressRecord;
-
-        const refreshTokenId = randomUUID();
         const sessionId = randomUUID();
+        const refreshTokenId = randomUUID();
+        const userId = randomUUID();
         const refreshToken = await signToken(
             {
                 jti: refreshTokenId,
@@ -71,12 +52,76 @@ export const verifyEmailService = {
         );
 
         await prisma.$transaction(async (tx) => {
-            await tx.emailAddress.update({
-                where: {
-                    id: emailAddressId,
-                },
+            await tx.user.create({
                 data: {
-                    isVerified: true,
+                    id: userId,
+                },
+                select: {
+                    id: true,
+                },
+            });
+            await tx.emailAddress.create({
+                data: {
+                    email,
+                    isPrimary: true,
+                    user: {
+                        connect: {
+                            id: userId,
+                        },
+                    },
+                },
+                select: {
+                    id: true,
+                },
+            });
+            await tx.auditLog.create({
+                data: {
+                    event: AuditEvent.EMAIL_VERIFIED,
+                    ipAddress,
+                    metadata: {
+                        email,
+                    },
+                    userAgent,
+                    user: {
+                        connect: {
+                            id: userId,
+                        },
+                    },
+                },
+                select: {
+                    id: true,
+                },
+            });
+            await tx.account.create({
+                data: {
+                    providerUserId: email,
+                    hashedPassword,
+                    user: {
+                        connect: {
+                            id: userId,
+                        },
+                    },
+                },
+                select: {
+                    id: true,
+                },
+            });
+            await tx.auditLog.create({
+                data: {
+                    event: AuditEvent.ACCOUNT_CREATED,
+                    ipAddress,
+                    metadata: {
+                        providerUserId: email,
+                    },
+                    userAgent,
+                    user: {
+                        connect: {
+                            id: userId,
+                        },
+                    },
+                },
+                select: {
+                    id: true,
                 },
             });
             await tx.session.create({
@@ -93,24 +138,16 @@ export const verifyEmailService = {
                     },
                     emailAddress: {
                         connect: {
-                            id: emailAddressId,
+                            email,
                         },
                     },
                 },
-            });
-            await tx.auditLog.create({
-                data: {
-                    event: "EMAIL_VERIFIED",
-                    ipAddress,
-                    userAgent,
-                    user: {
-                        connect: {
-                            id: userId,
-                        },
-                    },
+                select: {
+                    id: true,
                 },
             });
-            await redis.del(`verify-email:${token}`);
+
+            await redis.del(`email-verification:${token}`);
         });
 
         return {
@@ -120,7 +157,7 @@ export const verifyEmailService = {
         };
     },
     GET: async (token: string): Promise<string> => {
-        const data = await redis.get(`verify-email:${token}`);
+        const data = await redis.get(`email-verification:${token}`);
         if (!data) {
             throw new APIError(400, {
                 message: "Invalid or expired token",
@@ -128,6 +165,7 @@ export const verifyEmailService = {
         }
 
         const { email } = JSON.parse(data) as VerifyEmailPayload;
-        return email;
+        const [username, domain] = email.split("@");
+        return `${username[0]}***@${domain}`;
     },
 };

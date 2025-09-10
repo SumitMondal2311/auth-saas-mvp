@@ -13,6 +13,7 @@ export const envSchema = z
         JWT_ISS: z.string(),
         JWT_KID: z.string(),
         EMAIL_VERIFICATION_CODE_EXPIRY: z.string().transform(Number),
+        SESSION_LIMIT: z.string().transform(Number),
         DATABASE_MAX_RETRIES: z.string().transform(Number),
         REFRESH_TOKEN_EXPIRY: z.string().transform(Number),
     })

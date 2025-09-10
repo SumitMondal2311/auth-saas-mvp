@@ -1,4 +1,4 @@
-import { AuditEvent, prisma } from "@repo/database";
+import { prisma } from "@repo/database";
 import { randomUUID } from "crypto";
 import { env } from "../../configs/env.js";
 import { signToken } from "../../lib/jwt.js";
@@ -76,7 +76,7 @@ export const verifyEmailService = {
             });
             await tx.auditLog.create({
                 data: {
-                    event: AuditEvent.EMAIL_VERIFIED,
+                    event: "EMAIL_VERIFIED",
                     ipAddress,
                     metadata: {
                         email,
@@ -108,12 +108,12 @@ export const verifyEmailService = {
             });
             await tx.auditLog.create({
                 data: {
-                    event: AuditEvent.ACCOUNT_CREATED,
                     ipAddress,
+                    event: "ACCOUNT_CREATED",
+                    userAgent,
                     metadata: {
                         providerUserId: email,
                     },
-                    userAgent,
                     user: {
                         connect: {
                             id: userId,

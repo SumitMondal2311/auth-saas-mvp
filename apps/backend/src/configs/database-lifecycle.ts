@@ -1,5 +1,5 @@
 import { prisma } from "@repo/database";
-import { setTimeout } from "timers/promises";
+import { delay } from "../utils/delay.js";
 import { env } from "./env.js";
 
 export const reconnectDB = async () => {
@@ -12,7 +12,7 @@ export const reconnectDB = async () => {
             const wait = 2 ** attempt * 1000;
             console.warn(`Failed reconnecting to database on attempt ${attempt}`);
             console.warn(`Retrying in ${wait / 1000}s...`);
-            await setTimeout(wait);
+            await delay(wait);
         }
     }
 

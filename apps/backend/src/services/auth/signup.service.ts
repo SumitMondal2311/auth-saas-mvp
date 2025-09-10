@@ -5,6 +5,7 @@ import { env } from "../../configs/env.js";
 import { redis } from "../../lib/redis.js";
 import { VerifyEmailPayload } from "../../types/verify-email-payload.js";
 import { APIError } from "../../utils/api-error.js";
+import { delay } from "../../utils/delay.js";
 import { generateOTP } from "../../utils/generate-otp.js";
 
 export const signupService = async (email: string, password: string): Promise<string> => {
@@ -18,6 +19,7 @@ export const signupService = async (email: string, password: string): Promise<st
     });
 
     if (emailAddressRecord) {
+        await delay(50);
         throw new APIError(409, {
             message: "Email is already registered",
         });

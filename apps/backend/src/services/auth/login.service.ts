@@ -5,6 +5,7 @@ import { env } from "../../configs/env.js";
 import { signToken } from "../../lib/jwt.js";
 import { addDurationToNow } from "../../utils/add-duration-to-now.js";
 import { APIError } from "../../utils/api-error.js";
+import { delay } from "../../utils/delay.js";
 
 export const loginService = async ({
     ipAddress,
@@ -31,6 +32,7 @@ export const loginService = async ({
     });
 
     if (!emailAddressRecord) {
+        await delay(50);
         throw new APIError(401, {
             message: "Invalid credentials",
         });
@@ -46,7 +48,6 @@ export const loginService = async ({
                 userAgent,
                 metadata: {
                     email,
-                    provider: AccountProvider.LOCAL,
                 },
                 user: {
                     connect: {
@@ -92,7 +93,6 @@ export const loginService = async ({
     const refreshToken = await signToken(
         {
             jti: refreshTokenId,
-            typ: "refresh",
             sub: userId,
             sid: sessionId,
         },
@@ -153,7 +153,6 @@ export const loginService = async ({
                 userAgent,
                 metadata: {
                     email,
-                    provider: AccountProvider.LOCAL,
                 },
                 user: {
                     connect: {

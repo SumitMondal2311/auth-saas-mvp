@@ -20,7 +20,7 @@ const signupControllerSync = async (req: Request, res: Response, next: NextFunct
     const token = await signupService(email, password);
 
     res.status(201)
-        .cookie("__HOST-email_verification", token, {
+        .cookie("__HOST-email-verification", token, {
             secure: IS_PRODUCTION,
             httpOnly: true,
             maxAge: env.EMAIL_VERIFICATION_CODE_EXPIRY * 1000,

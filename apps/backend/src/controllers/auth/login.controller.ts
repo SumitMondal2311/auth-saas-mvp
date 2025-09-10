@@ -40,7 +40,7 @@ const loginControllerSync = async (req: Request, res: Response, next: NextFuncti
                     sub: userId,
                     sid: sessionId,
                 },
-                addDurationToNow(env.REFRESH_TOKEN_EXPIRY * 1000)
+                addDurationToNow(env.ACCESS_TOKEN_EXPIRY * 1000)
             ),
             message: "Logged in successfully",
         });

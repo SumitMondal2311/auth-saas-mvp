@@ -44,7 +44,6 @@ export const verifyEmailService = {
         const refreshToken = await signToken(
             {
                 jti: refreshTokenId,
-                typ: "refresh",
                 sub: userId,
                 sid: sessionId,
             },
@@ -112,7 +111,7 @@ export const verifyEmailService = {
                     event: "ACCOUNT_CREATED",
                     userAgent,
                     metadata: {
-                        providerUserId: email,
+                        email,
                     },
                     user: {
                         connect: {
@@ -139,6 +138,24 @@ export const verifyEmailService = {
                     emailAddress: {
                         connect: {
                             email,
+                        },
+                    },
+                },
+                select: {
+                    id: true,
+                },
+            });
+            await tx.auditLog.create({
+                data: {
+                    ipAddress,
+                    event: "LOGGED_IN",
+                    userAgent,
+                    metadata: {
+                        email,
+                    },
+                    user: {
+                        connect: {
+                            id: userId,
                         },
                     },
                 },

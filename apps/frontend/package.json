@@ -1,0 +1,33 @@
+{
+    "name": "frontend",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "build": "next build --turbopack",
+        "check-types": "tsc --noEmit",
+        "clean": "rm -rf .turbo .next/cache",
+        "dev": "next dev --turbopack",
+        "lint": "eslint",
+        "start": "next start",
+        "start:dev": "next start"
+    },
+    "dependencies": {
+        "class-variance-authority": "^0.7.1",
+        "clsx": "^2.1.1",
+        "lucide-react": "^0.543.0",
+        "next": "15.5.3",
+        "react": "19.1.0",
+        "react-dom": "19.1.0",
+        "shadcn": "^3.2.1",
+        "tailwind-merge": "^3.3.1"
+    },
+    "devDependencies": {
+        "@repo/tsconfig": "workspace:^",
+        "@tailwindcss/postcss": "^4",
+        "@types/node": "^20",
+        "@types/react": "^19",
+        "@types/react-dom": "^19",
+        "eslint-config-next": "15.5.3",
+        "tailwindcss": "^4"
+    }
+}

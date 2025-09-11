@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { IS_PRODUCTION } from "../../configs/constants.js";
 import { env } from "../../configs/env.js";
 import { verificationCodeSchema } from "../../configs/schemas.js";
-import { signToken } from "../../lib/jwt.js";
+import { signAccessToken } from "../../lib/jwt.js";
 import { verifyEmailService } from "../../services/auth/verify-email.service.js";
 import { addDurationToNow } from "../../utils/add-duration-to-now.js";
 import { APIError } from "../../utils/api-error.js";
@@ -47,7 +47,7 @@ export const verifyEmailController = {
 
         const { code } = parsedSchema.data;
 
-        const { refreshToken, userId, sessionId } = await verifyEmailService.POST({
+        const { refreshToken, userId, emailAddress, sessionId } = await verifyEmailService.POST({
             userAgent: req.headers["user-agent"],
             code,
             ipAddress: normalizedIP(req.ip || "unknown"),
@@ -63,10 +63,11 @@ export const verifyEmailController = {
             })
             .clearCookie("__HOST-email-verification")
             .json({
-                accessToken: await signToken(
+                accessToken: await signAccessToken(
                     {
-                        sub: userId,
                         sid: sessionId,
+                        sub: userId,
+                        emailAddress,
                     },
                     addDurationToNow(env.ACCESS_TOKEN_EXPIRY * 1000)
                 ),

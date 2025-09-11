@@ -17,8 +17,8 @@ const logoutControllerSync = async (req: Request, res: Response, next: NextFunct
     const data = req.protectedData;
     if (!data) {
         return next(
-            new APIError(500, {
-                message: "Internal server error: something went wrong",
+            new APIError(401, {
+                message: "Unauthorized",
             })
         );
     }

@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { IS_PRODUCTION } from "../../configs/constants.js";
 import { env } from "../../configs/env.js";
 import { authSchema } from "../../configs/schemas.js";
-import { signToken } from "../../lib/jwt.js";
+import { signAccessToken } from "../../lib/jwt.js";
 import { loginService } from "../../services/auth/login.service.js";
 import { addDurationToNow } from "../../utils/add-duration-to-now.js";
 import { APIError } from "../../utils/api-error.js";
@@ -20,7 +20,7 @@ const loginControllerSync = async (req: Request, res: Response, next: NextFuncti
     }
 
     const { email, password } = parsedSchema.data;
-    const { refreshToken, userId, sessionId } = await loginService({
+    const { refreshToken, userId, isPrimaryEmail, sessionId } = await loginService({
         userAgent: req.headers["user-agent"],
         ipAddress: normalizedIP(req.ip || "unknown"),
         email,
@@ -35,10 +35,14 @@ const loginControllerSync = async (req: Request, res: Response, next: NextFuncti
             sameSite: "strict",
         })
         .json({
-            accessToken: await signToken(
+            accessToken: await signAccessToken(
                 {
-                    sub: userId,
                     sid: sessionId,
+                    sub: userId,
+                    emailAddress: {
+                        isPrimary: isPrimaryEmail,
+                        email,
+                    },
                 },
                 addDurationToNow(env.ACCESS_TOKEN_EXPIRY * 1000)
             ),

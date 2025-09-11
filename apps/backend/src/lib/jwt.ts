@@ -21,12 +21,12 @@ if (!existsSync(privatePemPath) || !existsSync(publicPemPath)) {
 const privateKey = createPrivateKey(readFileSync(privatePemPath, "utf8"));
 const publicKey = createPublicKey(readFileSync(publicPemPath, "utf8"));
 
-export interface AuthJWTPayload extends JWTPayload {
+export interface RefreshJWTPayload extends JWTPayload {
     sid?: string;
 }
 
-export const signToken = (
-    payload: AuthJWTPayload,
+export const signRefreshToken = (
+    payload: RefreshJWTPayload,
     expirationTime: number | string | Date
 ): Promise<string> => {
     return new SignJWT({
@@ -42,7 +42,56 @@ export const signToken = (
         .sign(privateKey);
 };
 
-export const verifyToken = async (token: string): Promise<JWTVerifyResult<AuthJWTPayload>> => {
+export const verifyRefreshToken = async (
+    token: string
+): Promise<JWTVerifyResult<RefreshJWTPayload>> => {
+    try {
+        return await jwtVerify(token, publicKey);
+    } catch (error) {
+        if (
+            error instanceof errors.JWTInvalid ||
+            error instanceof errors.JWSInvalid ||
+            error instanceof errors.JWSSignatureVerificationFailed ||
+            error instanceof errors.JWTExpired ||
+            error instanceof errors.JWTClaimValidationFailed
+        ) {
+            throw new APIError(401, {
+                message: error.message,
+            });
+        }
+
+        throw error;
+    }
+};
+
+export interface AccessJWTPayload extends JWTPayload {
+    sid?: string;
+    emailAddress?: {
+        isPrimary: boolean;
+        email: string;
+    };
+}
+
+export const signAccessToken = (
+    payload: AccessJWTPayload,
+    expirationTime: number | string | Date
+): Promise<string> => {
+    return new SignJWT({
+        ...payload,
+        iss: env.JWT_ISS,
+        kid: env.JWT_KID,
+        aud: env.JWT_AUD,
+    })
+        .setProtectedHeader({ alg: "RS256" })
+        .setNotBefore(0)
+        .setIssuedAt()
+        .setExpirationTime(expirationTime)
+        .sign(privateKey);
+};
+
+export const verifyAccessToken = async (
+    token: string
+): Promise<JWTVerifyResult<AccessJWTPayload>> => {
     try {
         return await jwtVerify(token, publicKey);
     } catch (error) {

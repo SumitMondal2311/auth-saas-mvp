@@ -1,6 +1,5 @@
-import { prisma } from "@repo/database";
 import { NextFunction, Request, Response } from "express";
-import { verifyToken } from "../lib/jwt.js";
+import { verifyAccessToken } from "../lib/jwt.js";
 import { ProtectedData } from "../types/protected-data.js";
 import { APIError } from "../utils/api-error.js";
 import { handleAsync } from "../utils/handle-async.js";
@@ -30,45 +29,20 @@ const authMiddlewareSync = async (req: Request, _res: Response, next: NextFuncti
         );
     }
 
-    const { payload } = await verifyToken(accessToken);
-    const { sub, sid } = payload;
-    if (!sub || !sid) {
+    const { payload } = await verifyAccessToken(accessToken);
+    const { sub, emailAddress, sid } = payload;
+    if (!sub || !emailAddress || !sid) {
         return next(
             new APIError(401, {
-                message: "Invalid access token claims",
+                message: "Invalid access token",
             })
         );
     }
 
-    const sessionRecord = await prisma.session.findUnique({
-        where: {
-            userId: sub,
-            id: sid,
-        },
-        select: {
-            id: true,
-            emailAddress: {
-                select: {
-                    email: true,
-                },
-            },
-        },
-    });
-
-    if (!sessionRecord) {
-        throw new APIError(401, {
-            message: "Session not found",
-        });
-    }
-
-    const {
-        emailAddress: { email },
-    } = sessionRecord;
-
     req.protectedData = {
-        userId: sub,
-        email,
         sessionId: sid,
+        userId: sub,
+        emailAddress,
     };
 
     next();

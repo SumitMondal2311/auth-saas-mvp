@@ -1,6 +1,6 @@
 import { prisma } from "@repo/database";
 import { env } from "../../configs/env.js";
-import { verifyToken } from "../../lib/jwt.js";
+import { verifyRefreshToken } from "../../lib/jwt.js";
 import { redis } from "../../lib/redis.js";
 import { ProtectedData } from "../../types/protected-data.js";
 import { APIError } from "../../utils/api-error.js";
@@ -16,15 +16,15 @@ export const logoutService = async ({
     ipAddress?: string;
     userAgent?: string;
 }) => {
-    const { payload } = await verifyToken(refreshToken);
+    const { payload } = await verifyRefreshToken(refreshToken);
     const { jti, sub, exp, sid } = payload;
     if (!sid || !sub || !jti) {
         throw new APIError(401, {
-            message: "Invalid refresh token claims",
+            message: "Invalid refresh token",
         });
     }
 
-    const { userId, email, sessionId } = protectedData;
+    const { userId, emailAddress, sessionId } = protectedData;
     if (sub !== userId || sid !== sessionId) {
         throw new APIError(401, {
             message: "Invalid or malformed either token",
@@ -48,7 +48,7 @@ export const logoutService = async ({
                 ipAddress,
                 userAgent,
                 metadata: {
-                    email,
+                    email: emailAddress.email,
                 },
                 user: {
                     connect: {

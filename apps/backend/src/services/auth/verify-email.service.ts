@@ -1,7 +1,7 @@
 import { prisma } from "@repo/database";
 import { randomUUID } from "crypto";
 import { env } from "../../configs/env.js";
-import { signToken } from "../../lib/jwt.js";
+import { signRefreshToken } from "../../lib/jwt.js";
 import { redis } from "../../lib/redis.js";
 import { VerifyEmailPayload } from "../../types/verify-email-payload.js";
 import { addDurationToNow } from "../../utils/add-duration-to-now.js";
@@ -20,9 +20,13 @@ export const verifyEmailService = {
         userAgent?: string;
         token: string;
     }): Promise<{
-        refreshToken: string;
-        userId: string;
         sessionId: string;
+        userId: string;
+        emailAddress: {
+            isPrimary: boolean;
+            email: string;
+        };
+        refreshToken: string;
     }> => {
         const data = await redis.get(`email-verification:${token}`);
         if (!data) {
@@ -41,7 +45,7 @@ export const verifyEmailService = {
         const sessionId = randomUUID();
         const refreshTokenId = randomUUID();
         const userId = randomUUID();
-        const refreshToken = await signToken(
+        const refreshToken = await signRefreshToken(
             {
                 jti: refreshTokenId,
                 sub: userId,
@@ -50,7 +54,7 @@ export const verifyEmailService = {
             addDurationToNow(env.REFRESH_TOKEN_EXPIRY * 1000)
         );
 
-        await prisma.$transaction(async (tx) => {
+        const newEmailAddress = await prisma.$transaction(async (tx) => {
             await tx.user.create({
                 data: {
                     id: userId,
@@ -59,7 +63,7 @@ export const verifyEmailService = {
                     id: true,
                 },
             });
-            await tx.emailAddress.create({
+            const newEmailAddress = await tx.emailAddress.create({
                 data: {
                     email,
                     isPrimary: true,
@@ -70,7 +74,8 @@ export const verifyEmailService = {
                     },
                 },
                 select: {
-                    id: true,
+                    isPrimary: true,
+                    email: true,
                 },
             });
             await tx.auditLog.create({
@@ -165,11 +170,13 @@ export const verifyEmailService = {
             });
 
             await redis.del(`email-verification:${token}`);
+            return newEmailAddress;
         });
 
         return {
             sessionId,
             userId,
+            emailAddress: newEmailAddress,
             refreshToken,
         };
     },

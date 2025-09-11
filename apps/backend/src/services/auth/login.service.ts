@@ -2,7 +2,7 @@ import { AccountProvider, prisma } from "@repo/database";
 import { verify } from "argon2";
 import { randomUUID } from "crypto";
 import { env } from "../../configs/env.js";
-import { signToken } from "../../lib/jwt.js";
+import { signRefreshToken } from "../../lib/jwt.js";
 import { addDurationToNow } from "../../utils/add-duration-to-now.js";
 import { APIError } from "../../utils/api-error.js";
 import { delay } from "../../utils/delay.js";
@@ -20,6 +20,7 @@ export const loginService = async ({
 }): Promise<{
     refreshToken: string;
     userId: string;
+    isPrimaryEmail: boolean;
     sessionId: string;
 }> => {
     const emailAddressRecord = await prisma.emailAddress.findUnique({
@@ -27,6 +28,7 @@ export const loginService = async ({
             email,
         },
         select: {
+            isPrimary: true,
             userId: true,
         },
     });
@@ -38,7 +40,7 @@ export const loginService = async ({
         });
     }
 
-    const { userId } = emailAddressRecord;
+    const { isPrimary, userId } = emailAddressRecord;
 
     const auditLogFailedLogin = () => {
         return prisma.auditLog.create({
@@ -90,7 +92,7 @@ export const loginService = async ({
 
     const refreshTokenId = randomUUID();
     const sessionId = randomUUID();
-    const refreshToken = await signToken(
+    const refreshToken = await signRefreshToken(
         {
             jti: refreshTokenId,
             sub: userId,
@@ -169,6 +171,7 @@ export const loginService = async ({
     return {
         refreshToken,
         userId,
+        isPrimaryEmail: isPrimary,
         sessionId,
     };
 };

@@ -1,5 +1,8 @@
 export type ProtectedData = {
     userId: string;
-    email: string;
+    emailAddress: {
+        isPrimary: boolean;
+        email: string;
+    };
     sessionId: string;
 };

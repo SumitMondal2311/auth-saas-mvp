@@ -1,5 +1,6 @@
 import { Toaster } from "@/components/ui/sonner";
 import { QueryProvider } from "@/lib/providers/query.provider";
+import { UserInfoProvider } from "@/lib/providers/user-info.provider";
 import { Inter, Space_Grotesk } from "next/font/google";
 import "../styles/index.css";
 
@@ -25,7 +26,9 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className={`${inter.variable} ${spaceGrotesk.variable}`}>
-                <QueryProvider>{children}</QueryProvider>
+                <QueryProvider>
+                    <UserInfoProvider>{children}</UserInfoProvider>
+                </QueryProvider>
                 <Toaster />
             </body>
         </html>

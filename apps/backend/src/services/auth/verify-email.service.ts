@@ -188,8 +188,6 @@ export const verifyEmailService = {
             });
         }
 
-        const { email } = JSON.parse(data) as VerifyEmailPayload;
-        const [username, domain] = email.split("@");
-        return `${username[0]}***@${domain}`;
+        return (JSON.parse(data) as VerifyEmailPayload).email;
     },
 };

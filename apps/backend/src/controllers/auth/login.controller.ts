@@ -28,11 +28,12 @@ const loginControllerSync = async (req: Request, res: Response, next: NextFuncti
     });
 
     res.status(200)
-        .cookie("__HOST-auth-session", refreshToken, {
+        .cookie("__auth-session", refreshToken, {
             secure: IS_PRODUCTION,
+            path: "/",
             httpOnly: true,
             maxAge: env.REFRESH_TOKEN_EXPIRY * 1000,
-            sameSite: "strict",
+            sameSite: IS_PRODUCTION ? "none" : "lax",
         })
         .json({
             accessToken: await signAccessToken(

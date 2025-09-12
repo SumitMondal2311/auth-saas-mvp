@@ -1,17 +1,20 @@
-import { JetBrains_Mono, Outfit } from "next/font/google";
+import { Toaster } from "@/components/ui/sonner";
+import { QueryProvider } from "@/lib/providers/query.provider";
+import { Inter, Space_Grotesk } from "next/font/google";
 import "../styles/index.css";
 
-const jetBrainsMono = JetBrains_Mono({
-    variable: "--font-jet-brains-mono",
+const spaceGrotesk = Space_Grotesk({
+    variable: "--font-space-grotesk",
     display: "swap",
     subsets: ["latin"],
-    weight: "700",
+    weight: "500",
 });
 
-const outfit = Outfit({
-    variable: "--font-outfit",
+const inter = Inter({
+    variable: "--font-inter",
     display: "swap",
     subsets: ["latin"],
+    weight: "300",
 });
 
 export default function RootLayout({
@@ -21,7 +24,10 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body className={`${outfit.variable} ${jetBrainsMono.variable}`}>{children}</body>
+            <body className={`${inter.variable} ${spaceGrotesk.variable}`}>
+                <QueryProvider>{children}</QueryProvider>
+                <Toaster />
+            </body>
         </html>
     );
 }

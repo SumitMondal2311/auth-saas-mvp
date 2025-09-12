@@ -3,11 +3,11 @@ import z from "zod";
 export const envSchema = z
     .object({
         NODE_ENV: z.enum(["development", "test", "production"]),
-        PORT: z.string().transform(Number).default(4321),
+        PORT: z.string().default("4321").transform(Number),
         DATABASE_URL: z.string(),
         REDIS_URL: z.string(),
-        WEB_ORIGIN: z.url(),
-        API_ORIGIN: z.url().optional(),
+        WEB_ORIGIN: z.string().url(),
+        API_ORIGIN: z.string().url().optional(),
         ACCESS_TOKEN_EXPIRY: z.string().transform(Number),
         JWT_AUD: z.string(),
         JWT_ISS: z.string(),
@@ -36,7 +36,10 @@ export const verificationCodeSchema = z.object({
 });
 
 export const authSchema = z.object({
-    email: z.email("Invalid email").transform((email) => email.toLowerCase()),
+    email: z
+        .string()
+        .email("Invalid email")
+        .transform((email) => email.toLowerCase()),
     password: z
         .string()
         .min(12, "Password must contain at least 12 characters")

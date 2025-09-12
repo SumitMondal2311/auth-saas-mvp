@@ -5,7 +5,7 @@ import { handleAsync } from "../../utils/handle-async.js";
 import { normalizedIP } from "../../utils/normalized-ip.js";
 
 const logoutControllerSync = async (req: Request, res: Response, next: NextFunction) => {
-    const refreshToken = req.cookies["__HOST-auth-session"] as string;
+    const refreshToken = req.cookies["__auth-session"] as string;
     if (!refreshToken) {
         return next(
             new APIError(400, {
@@ -30,7 +30,7 @@ const logoutControllerSync = async (req: Request, res: Response, next: NextFunct
         protectedData: data,
     });
 
-    res.status(200).clearCookie("__HOST-auth-session").json({ message: "Logged out successfully" });
+    res.status(200).clearCookie("__auth-session").json({ message: "Logged out successfully" });
 };
 
 export const logoutController = handleAsync(logoutControllerSync);

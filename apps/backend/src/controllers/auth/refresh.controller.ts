@@ -8,7 +8,7 @@ import { APIError } from "../../utils/api-error.js";
 import { handleAsync } from "../../utils/handle-async.js";
 
 const refreshControllerSync = async (req: Request, res: Response, next: NextFunction) => {
-    const refreshToken = req.cookies["__HOST-auth-session"] as string;
+    const refreshToken = req.cookies["__auth-session"] as string;
     if (!refreshToken) {
         return next(
             new APIError(401, {
@@ -19,13 +19,14 @@ const refreshControllerSync = async (req: Request, res: Response, next: NextFunc
 
     const { newRefreshToken, userId, emailAddress, sessionId } = await refreshService(refreshToken);
 
-    res.clearCookie("__HOST-auth-session");
+    res.clearCookie("__auth-session");
     res.status(200)
-        .cookie("__HOST-auth-session", newRefreshToken, {
+        .cookie("__auth-session", newRefreshToken, {
             secure: IS_PRODUCTION,
+            path: "/",
             httpOnly: true,
             maxAge: env.REFRESH_TOKEN_EXPIRY * 1000,
-            sameSite: "strict",
+            sameSite: IS_PRODUCTION ? "none" : "lax",
         })
         .json({
             accessToken: await signAccessToken(

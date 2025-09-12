@@ -11,7 +11,7 @@ import { normalizedIP } from "../../utils/normalized-ip.js";
 
 export const verifyEmailController = {
     GET: handleAsync(async (req: Request, res: Response, next: NextFunction) => {
-        const token = req.cookies["__HOST-email-verification"] as string;
+        const token = req.cookies["__email-verification"] as string;
         if (!token) {
             return next(
                 new APIError(400, {
@@ -27,7 +27,7 @@ export const verifyEmailController = {
         });
     }),
     POST: handleAsync(async (req: Request, res: Response, next: NextFunction) => {
-        const token = req.cookies["__HOST-email-verification"] as string;
+        const token = req.cookies["__email-verification"] as string;
         if (!token) {
             return next(
                 new APIError(400, {
@@ -55,13 +55,14 @@ export const verifyEmailController = {
         });
 
         res.status(200)
-            .cookie("__HOST-auth-session", refreshToken, {
+            .cookie("__auth-session", refreshToken, {
                 secure: IS_PRODUCTION,
+                path: "/",
                 httpOnly: true,
                 maxAge: env.REFRESH_TOKEN_EXPIRY * 1000,
-                sameSite: "strict",
+                sameSite: IS_PRODUCTION ? "none" : "lax",
             })
-            .clearCookie("__HOST-email-verification")
+            .clearCookie("__email-verification")
             .json({
                 accessToken: await signAccessToken(
                     {

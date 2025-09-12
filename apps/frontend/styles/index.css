@@ -24,8 +24,8 @@
     --color-destructive: var(--destructive);
     --color-border: var(--border);
     --color-input: var(--input);
-    --font-sans: var(--font-outfit);
-    --font-mono: var(--font-jet-brains-mono);
+    --font-sans: var(--font-inter);
+    --font-mono: var(--font-space-grotesk);
     --color-ring: var(--ring);
     --color-chart-1: var(--chart-1);
     --color-chart-2: var(--chart-2);

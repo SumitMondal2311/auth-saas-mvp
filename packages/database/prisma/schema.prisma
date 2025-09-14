@@ -8,7 +8,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// ==================== Enums ====================
+// ==================== Global Enums ====================
 
 enum UserStatus {
   ACTIVE
@@ -59,6 +59,7 @@ model User {
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
+  applications  Application[]
   accounts      Account[]
   emailAdresses EmailAddress[]
   sessions      Session[]
@@ -151,6 +152,155 @@ model AuditLog {
   createdAt DateTime   @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ==================== Application Models ====================
+
+model Application {
+  id     String @id() @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  name   String
+
+  // auth options
+  phone    Boolean @default(false)
+  email    Boolean @default(true)
+  username Boolean @default(false)
+  google   Boolean @default(true)
+  github   Boolean @default(false)
+
+  publishableKey String   @unique
+  secretKey      String   @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  emailAdresses ApplicationEmailAddress[]
+  accounts      ApplicationAccount[]
+  sessions      ApplicationSession[]
+  users         ApplicationUser[]
+  backupCodes   ApplicationBackupCode[]
+  auditLogs     ApplicationAuditLog[]
+  mfaFactors    ApplicationMfaFactor[]
+}
+
+model ApplicationUser {
+  id            String     @id() @default(uuid()) @db.Uuid
+  isMfaEnabled  Boolean    @default(false)
+  applicationId String     @db.Uuid
+  status        UserStatus @default(ACTIVE)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  accounts      ApplicationAccount[]
+  emailAdresses ApplicationEmailAddress[]
+  sessions      ApplicationSession[]
+  backupCodes   ApplicationBackupCode[]
+  auditLogs     ApplicationAuditLog[]
+  mfaFactors    ApplicationMfaFactor[]
+}
+
+model ApplicationAccount {
+  id             String          @id @default(uuid()) @db.Uuid
+  applicationId  String          @db.Uuid
+  providerUserId String
+  provider       AccountProvider @default(LOCAL)
+  userId         String          @db.Uuid
+  hashedPassword String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  user        ApplicationUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  application Application     @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@unique([providerUserId, provider, applicationId])
+  @@index([userId])
+}
+
+model ApplicationEmailAddress {
+  id            String   @id @default(uuid()) @db.Uuid
+  applicationId String   @db.Uuid
+  userId        String   @db.Uuid
+  isVerified    Boolean  @default(true)
+  email         String
+  isPrimary     Boolean
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  sessions ApplicationSession[]
+
+  user        ApplicationUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  application Application     @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@unique([email, applicationId])
+  @@index([userId])
+}
+
+model ApplicationSession {
+  id             String      @id @default(uuid()) @db.Uuid
+  applicationId  String      @db.Uuid
+  refreshTokenId String      @unique
+  loginMethod    LoginMethod @default(EMAIL)
+  userId         String      @db.Uuid
+  emailAddressId String      @db.Uuid
+  userAgent      String?
+  ipAddress      String?
+  expiresAt      DateTime
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  isRevoked      Boolean     @default(false)
+
+  user         ApplicationUser         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emailAddress ApplicationEmailAddress @relation(fields: [emailAddressId], references: [id], onDelete: Cascade)
+  application  Application             @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model ApplicationMfaFactor {
+  id            String   @id @default(uuid()) @db.Uuid
+  applicationId String   @db.Uuid
+  userId        String   @db.Uuid
+  type          MfaType
+  hashedSecret  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user        ApplicationUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  application Application     @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model ApplicationBackupCode {
+  applicationId String   @db.Uuid
+  id            String   @id @default(uuid()) @db.Uuid
+  hashedCode    String
+  userId        String   @db.Uuid
+  createdAt     DateTime @default(now())
+
+  user        ApplicationUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  application Application     @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model ApplicationAuditLog {
+  id            String     @id @default(uuid()) @db.Uuid
+  applicationId String     @db.Uuid
+  userId        String     @db.Uuid
+  ipAddress     String?
+  metadata      Json?
+  userAgent     String?
+  event         AuditEvent
+  createdAt     DateTime   @default(now())
+
+  user        ApplicationUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  application Application     @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }

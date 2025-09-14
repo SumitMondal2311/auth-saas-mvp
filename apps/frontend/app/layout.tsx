@@ -1,7 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { QueryProvider } from "@/lib/providers/query.provider";
 import { UserInfoProvider } from "@/lib/providers/user-info.provider";
-import { Inter, Space_Grotesk } from "next/font/google";
+import { Outfit, Space_Grotesk } from "next/font/google";
 import "../styles/index.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -11,11 +11,10 @@ const spaceGrotesk = Space_Grotesk({
     weight: "500",
 });
 
-const inter = Inter({
-    variable: "--font-inter",
+const outfit = Outfit({
+    variable: "--font-outfit",
     display: "swap",
     subsets: ["latin"],
-    weight: "300",
 });
 
 export default function RootLayout({
@@ -25,7 +24,7 @@ export default function RootLayout({
 }>) {
     return (
         <html lang="en">
-            <body className={`${inter.variable} ${spaceGrotesk.variable}`}>
+            <body className={`${outfit.variable} ${spaceGrotesk.variable}`}>
                 <QueryProvider>
                     <UserInfoProvider>{children}</UserInfoProvider>
                 </QueryProvider>

@@ -22,7 +22,7 @@ export function SignupForm() {
             email: "",
             password: "",
         },
-        mode: "onChange",
+        mode: "onTouched",
     });
 
     const onSubmit = (data: Schema) => {
@@ -55,17 +55,22 @@ export function SignupForm() {
                     render={({ field }) => (
                         <FormItem>
                             <FormControl>
-                                <Input {...field} type="password" placeholder="Password" />
+                                <Input
+                                    {...field}
+                                    type="password"
+                                    placeholder="Password"
+                                    className={field.value ? "font-extrabold tracking-widest" : ""}
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
                     )}
                 />
-                <Button type="submit" disabled={isPending} className="flex cursor-pointer gap-2">
+                <Button type="submit" disabled={isPending} className="cursor-pointer">
                     Continue
                 </Button>
-                <div className="flex items-center self-center text-sm">
-                    <p>Already have an account?</p>
+                <div className="flex items-center self-center">
+                    <p className="text-sm">Already have an account?</p>
                     <Link
                         href="/login"
                         className={cn(

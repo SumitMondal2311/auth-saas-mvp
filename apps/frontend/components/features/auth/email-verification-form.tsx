@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { emailVerificationSchema } from "@/configs/schemas";
 import { useVerifyEmail } from "@/hooks/use-verify-email";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -20,7 +19,7 @@ export function EmailVerificationForm() {
         defaultValues: {
             code: "",
         },
-        mode: "onChange",
+        mode: "onTouched",
     });
 
     const onSubmit = (data: Schema) => {
@@ -43,8 +42,6 @@ export function EmailVerificationForm() {
                             <FormControl>
                                 <Input
                                     {...field}
-                                    inputMode="numeric"
-                                    pattern="[0-9]*"
                                     maxLength={6}
                                     placeholder="Code"
                                     onChange={(e) =>
@@ -57,16 +54,8 @@ export function EmailVerificationForm() {
                         </FormItem>
                     )}
                 />
-
-                <Button type="submit" disabled={isPending} className="flex cursor-pointer gap-2">
-                    {isPending ? (
-                        <>
-                            <Loader2 className="animate-spin" />
-                            Continue
-                        </>
-                    ) : (
-                        "Continue"
-                    )}
+                <Button type="submit" disabled={isPending} className="cursor-pointer">
+                    Continue
                 </Button>
             </form>
         </Form>

@@ -3,6 +3,7 @@
 import { loginApi } from "@/lib/api";
 import { authStore } from "@/store/auth.store";
 import { ApiErrorResponse } from "@/types/api-error-response";
+import { AuthApiRequestData } from "@/types/api-request-data";
 import { useMutation } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
@@ -14,7 +15,7 @@ export const useLogin = () => {
     return useMutation<
         Awaited<ReturnType<typeof loginApi>>,
         AxiosError<ApiErrorResponse>,
-        { email: string; password: string }
+        AuthApiRequestData
     >({
         mutationFn: loginApi,
         onSuccess: (response) => {
@@ -24,7 +25,6 @@ export const useLogin = () => {
             router.push("/dashboard");
         },
         onError: (error) => {
-            console.log(error);
             if (error instanceof AxiosError) {
                 toast.error(error.response?.data?.message || "Internal server error");
             } else {

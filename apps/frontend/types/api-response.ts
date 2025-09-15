@@ -1,16 +1,13 @@
+import { Application } from "./application";
+import { User } from "./user";
+
 export type SignupApiResponse = {
     message: string;
     accessToken: string;
 };
 
 export type MeApiResponse = {
-    user: {
-        emailAddress: {
-            isPrimary: boolean;
-            email: string;
-        };
-        id: string;
-    };
+    user: User;
     message: string;
 };
 
@@ -35,4 +32,13 @@ export type LoginApiResponse = {
 
 export type LogoutApiResponse = {
     message: string;
+};
+
+export type CreateApplicationApiResponse = {
+    application: Application;
+    message: string;
+};
+
+export type GetAllApplicationApiResponse = {
+    applications: Application[];
 };

@@ -1,12 +1,5 @@
+import { User } from "@/types/user";
 import { create } from "zustand";
-
-type User = {
-    emailAddress: {
-        isPrimary: boolean;
-        email: string;
-    };
-    id: string;
-};
 
 type UserStoreType = {
     user: User | null;

@@ -40,9 +40,12 @@ export const authSchema = z.object({
         .string()
         .email("Invalid email")
         .transform((email) => email.toLowerCase()),
-    password: z
-        .string()
-        .min(12, "Password must contain at least 12 characters")
-        .regex(/[0-9]/, "Password must contain a digit")
-        .regex(/[^a-z0-9A-Z]/, "Password must contain a speacial character"),
+    password: z.string().min(12, "Password must contain at least 12 characters"),
+});
+
+export const applicationSchema = z.object({
+    name: z.string().nonempty("Name required"),
+    username: z.boolean().default(false),
+    phone: z.boolean().default(false),
+    github: z.boolean().default(false),
 });

@@ -3,6 +3,7 @@
 import { signupApi } from "@/lib/api";
 import { authStore } from "@/store/auth.store";
 import { ApiErrorResponse } from "@/types/api-error-response";
+import { AuthApiRequestData } from "@/types/api-request-data";
 import { useMutation } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
@@ -14,7 +15,7 @@ export const useSignup = () => {
     return useMutation<
         Awaited<ReturnType<typeof signupApi>>,
         AxiosError<ApiErrorResponse>,
-        { email: string; password: string }
+        AuthApiRequestData
     >({
         mutationFn: signupApi,
         onSuccess: (response) => {

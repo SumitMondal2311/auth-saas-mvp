@@ -3,6 +3,7 @@
 import { verifyEmailApi } from "@/lib/api";
 import { authStore } from "@/store/auth.store";
 import { ApiErrorResponse } from "@/types/api-error-response";
+import { VerifyEmailApiRequestData } from "@/types/api-request-data";
 import { useMutation } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
@@ -23,7 +24,7 @@ export const useVerifyEmail = {
         return useMutation<
             Awaited<ReturnType<typeof verifyEmailApi.POST>>,
             AxiosError<ApiErrorResponse>,
-            { code: string }
+            VerifyEmailApiRequestData
         >({
             mutationFn: verifyEmailApi.POST,
             onSuccess: (response) => {

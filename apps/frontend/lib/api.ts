@@ -1,4 +1,7 @@
+import { AuthApiRequestData, CreateApplicationApiRequestData } from "@/types/api-request-data";
 import {
+    CreateApplicationApiResponse,
+    GetAllApplicationApiResponse,
     LoginApiResponse,
     LogoutApiResponse,
     MeApiResponse,
@@ -8,7 +11,7 @@ import {
 } from "@/types/api-response";
 import { apiClient } from "./axios";
 
-export const signupApi = async (data: { email: string; password: string }) => {
+export const signupApi = async (data: AuthApiRequestData) => {
     return apiClient.post<SignupApiResponse>("/auth/signup", data);
 };
 
@@ -29,10 +32,18 @@ export const refreshApi = async () => {
     return apiClient.post<RefreshApiResponse>("/auth/refresh");
 };
 
-export const loginApi = async (data: { email: string; password: string }) => {
+export const loginApi = async (data: AuthApiRequestData) => {
     return apiClient.post<LoginApiResponse>("/auth/login", data);
 };
 
 export const logoutApi = async () => {
     return apiClient.post<LogoutApiResponse>("/auth/logout");
+};
+
+export const getAllApplicationApi = async () => {
+    return apiClient.get<GetAllApplicationApiResponse>("/application/get-all");
+};
+
+export const createApplicationApi = async (data: CreateApplicationApiRequestData) => {
+    return apiClient.post<CreateApplicationApiResponse>("/application/create", data);
 };

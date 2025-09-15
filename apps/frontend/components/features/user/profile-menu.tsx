@@ -17,9 +17,7 @@ export const ProfileMenu = ({ children }: { children: ReactNode }) => {
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
-            <PopoverTrigger className="absolute right-4 top-4 cursor-pointer">
-                {children}
-            </PopoverTrigger>
+            <PopoverTrigger className="cursor-pointer">{children}</PopoverTrigger>
             <PopoverContent side="bottom" className="relative right-4 flex flex-col p-0">
                 <div className="flex items-center gap-2 px-4 pb-2 pt-4">
                     <UserAvatar />

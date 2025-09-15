@@ -11,3 +11,10 @@ export const authenticationSchema = z.object({
         .transform((email) => email.toLowerCase()),
     password: z.string().min(12, "Password must contain at least 12 characters"),
 });
+
+export const applicationSchema = z.object({
+    name: z.string().nonempty("required"),
+    username: z.boolean().default(false),
+    phone: z.boolean().default(false),
+    github: z.boolean().default(false),
+});

@@ -3,7 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { buttonVariants } from "../../ui/button";
 
-export function GoogleAuthButton({ label = "Continue with Google" }: { label?: string }) {
+export function GitHubAuthButton({ label = "Continue with GitHub" }: { label?: string }) {
     return (
         <Link
             href="#"
@@ -14,7 +14,7 @@ export function GoogleAuthButton({ label = "Continue with Google" }: { label?: s
                 "flex-1"
             )}
         >
-            <Image src="/google.svg" alt="google-icon" height={16} width={16} />
+            <Image src="/github.svg" alt="github-icon" height={16} width={16} />
             {label}
         </Link>
     );

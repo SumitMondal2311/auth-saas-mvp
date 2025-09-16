@@ -14,7 +14,7 @@ export const authenticationSchema = z.object({
 
 export const applicationSchema = z.object({
     name: z.string().nonempty("required"),
-    username: z.boolean().default(false),
-    phone: z.boolean().default(false),
-    github: z.boolean().default(false),
+    usernameLogIn: z.boolean().default(false),
+    phoneLogIn: z.boolean().default(false),
+    githubLogIn: z.boolean().default(false),
 });

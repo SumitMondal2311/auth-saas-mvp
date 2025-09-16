@@ -1,4 +1,5 @@
 import z from "zod";
+import { validateUUID } from "../utils/validate-uuid.js";
 
 export const envSchema = z
     .object({
@@ -45,7 +46,23 @@ export const authSchema = z.object({
 
 export const applicationSchema = z.object({
     name: z.string().nonempty("Name required"),
-    username: z.boolean().default(false),
-    phone: z.boolean().default(false),
-    github: z.boolean().default(false),
+    usernameLogIn: z.boolean().default(false),
+    phoneLogIn: z.boolean().default(false),
+    githubLogIn: z.boolean().default(false),
+});
+
+export const applicationMiddlewareSchema = z.object({
+    publishableKey: z
+        .string()
+        .nonempty("Required publishable key")
+        .startsWith("pk_")
+        .refine(
+            (val) => {
+                const [_prefix, key] = val.split("_");
+                return validateUUID(key);
+            },
+            {
+                message: "Invalid publishable key",
+            }
+        ),
 });

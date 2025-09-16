@@ -163,12 +163,10 @@ model Application {
   userId String @db.Uuid
   name   String
 
-  // auth options
-  phone    Boolean @default(false)
-  email    Boolean @default(true)
-  username Boolean @default(false)
-  google   Boolean @default(true)
-  github   Boolean @default(false)
+  // Log in options
+  phoneLogIn    Boolean @default(false)
+  usernameLogIn Boolean @default(false)
+  githubLogIn   Boolean @default(false)
 
   publishableKey String   @unique
   secretKey      String   @unique
@@ -177,6 +175,7 @@ model Application {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  phoneNumbers  ApplicationPhoneNumber[]
   emailAdresses ApplicationEmailAddress[]
   accounts      ApplicationAccount[]
   sessions      ApplicationSession[]
@@ -189,6 +188,7 @@ model Application {
 model ApplicationUser {
   id            String     @id() @default(uuid()) @db.Uuid
   isMfaEnabled  Boolean    @default(false)
+  username      String?
   applicationId String     @db.Uuid
   status        UserStatus @default(ACTIVE)
   createdAt     DateTime   @default(now())
@@ -196,12 +196,15 @@ model ApplicationUser {
 
   application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
-  accounts      ApplicationAccount[]
+  phoneNumbers  ApplicationPhoneNumber[]
   emailAdresses ApplicationEmailAddress[]
+  accounts      ApplicationAccount[]
   sessions      ApplicationSession[]
   backupCodes   ApplicationBackupCode[]
   auditLogs     ApplicationAuditLog[]
   mfaFactors    ApplicationMfaFactor[]
+
+  @@unique([username, applicationId])
 }
 
 model ApplicationAccount {
@@ -218,6 +221,23 @@ model ApplicationAccount {
   application Application     @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   @@unique([providerUserId, provider, applicationId])
+  @@index([userId])
+}
+
+model ApplicationPhoneNumber {
+  id            String   @id @default(uuid()) @db.Uuid
+  applicationId String   @db.Uuid
+  userId        String   @db.Uuid
+  isVerified    Boolean  @default(true)
+  phone         String
+  isPrimary     Boolean
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user        ApplicationUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+  application Application     @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@unique([phone, applicationId])
   @@index([userId])
 }
 

@@ -2,23 +2,23 @@ import { Application } from "@/types/application";
 import { create } from "zustand";
 
 type ApplicationStoreType = {
-    usernameOpt: boolean;
-    setUsernameOpt: (state: boolean) => void;
-    phoneOpt: boolean;
-    setPhoneOpt: (state: boolean) => void;
-    githubOpt: boolean;
-    setGithubOpt: (state: boolean) => void;
+    usernameLogIn: boolean;
+    setUsernameLogIn: (state: boolean) => void;
+    phoneLogIn: boolean;
+    setPhoneLogIn: (state: boolean) => void;
+    githubLogIn: boolean;
+    setGithubLogIn: (state: boolean) => void;
     applications: Application[];
     setApplications: (application: Application[]) => void;
 };
 
 export const applicationStore = create<ApplicationStoreType>((set) => ({
-    usernameOpt: false,
-    setUsernameOpt: (state) => set({ usernameOpt: state }),
-    phoneOpt: false,
-    setPhoneOpt: (state) => set({ phoneOpt: state }),
-    githubOpt: false,
-    setGithubOpt: (state) => set({ githubOpt: state }),
+    usernameLogIn: false,
+    setUsernameLogIn: (state) => set({ usernameLogIn: state }),
+    phoneLogIn: false,
+    setPhoneLogIn: (state) => set({ phoneLogIn: state }),
+    githubLogIn: false,
+    setGithubLogIn: (state) => set({ githubLogIn: state }),
     applications: [],
     setApplications: (applications) => set({ applications }),
 }));

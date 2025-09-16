@@ -23,13 +23,13 @@ const createApplicationControllerSync = async (req: Request, res: Response, next
         );
     }
 
-    const { name, username, phone, github } = parsedSchema.data;
+    const { name, usernameLogIn, phoneLogIn, githubLogIn } = parsedSchema.data;
     const application = await createApplicationService({
         userId: data.userId,
         name,
-        username,
-        phone,
-        github,
+        usernameLogIn,
+        phoneLogIn,
+        githubLogIn,
     });
 
     res.status(201).json({

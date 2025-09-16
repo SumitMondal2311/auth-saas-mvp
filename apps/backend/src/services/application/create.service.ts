@@ -5,15 +5,15 @@ import { APIError } from "../../utils/api-error.js";
 export const createApplicationService = async ({
     userId,
     name,
-    username,
-    phone,
-    github,
+    usernameLogIn,
+    phoneLogIn,
+    githubLogIn,
 }: {
     userId: string;
     name: string;
-    username: boolean;
-    phone: boolean;
-    github: boolean;
+    usernameLogIn: boolean;
+    phoneLogIn: boolean;
+    githubLogIn: boolean;
 }): Promise<{
     name: string;
     id: string;
@@ -37,12 +37,12 @@ export const createApplicationService = async ({
 
     const newApplication = await prisma.application.create({
         data: {
-            github,
             name,
-            username,
-            phone,
-            publishableKey: `pk_${randomUUID()}`,
+            usernameLogIn,
+            phoneLogIn,
+            githubLogIn,
             secretKey: `sk_${randomUUID()}`,
+            publishableKey: `pk_${randomUUID()}`,
             user: {
                 connect: {
                     id: userId,

@@ -9,7 +9,7 @@ export type AuthApiRequestData = {
 
 export type CreateApplicationApiRequestData = {
     name: string;
-    username?: boolean;
-    phone?: boolean;
-    github?: boolean;
+    usernameLogIn?: boolean;
+    phoneLogIn?: boolean;
+    githubLogIn?: boolean;
 };

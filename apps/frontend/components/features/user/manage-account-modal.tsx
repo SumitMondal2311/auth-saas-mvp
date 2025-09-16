@@ -35,7 +35,7 @@ const items: {
 export const ManageAccountModal = () => {
     const [content, setContent] = useState<Item>("Preferences");
     const { openProfileModel, setOpenProfileModel } = globalStore();
-    const { user } = userStore();
+    const { primaryEmail } = userStore();
 
     return (
         <Dialog open={openProfileModel} onOpenChange={setOpenProfileModel}>
@@ -61,7 +61,7 @@ export const ManageAccountModal = () => {
                     </section>
                     <section className="flex-1 space-y-4 divide-y p-4">
                         {content === "Preferences" ? (
-                            <AccountPreferences email={user?.emailAddress.email} />
+                            <AccountPreferences email={primaryEmail} />
                         ) : null}
                         {content === "Security" ? <AccountSecurity /> : null}
                         {content === "Audit Logs" ? <AccountAuditLogs /> : null}

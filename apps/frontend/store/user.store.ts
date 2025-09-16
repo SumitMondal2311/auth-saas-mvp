@@ -1,12 +1,20 @@
-import { User } from "@/types/user";
+import { ProfileInfo } from "@/types/profile-info";
 import { create } from "zustand";
 
 type UserStoreType = {
-    user: User | null;
-    setUser: (user: User) => void;
+    profileInfo: ProfileInfo | null;
+    setProfileInfo: (info: ProfileInfo) => void;
+    primaryEmail: string;
+    setPrimaryEmail: (email: string) => void;
+    primaryPhone: string;
+    setPrimaryPhone: (email: string) => void;
 };
 
 export const userStore = create<UserStoreType>((set) => ({
-    user: null,
-    setUser: (user) => set({ user }),
+    profileInfo: null,
+    setProfileInfo: (info) => set({ profileInfo: info }),
+    primaryEmail: "",
+    setPrimaryEmail: (email) => set({ primaryEmail: email }),
+    primaryPhone: "",
+    setPrimaryPhone: (phone) => set({ primaryPhone: phone }),
 }));

@@ -1,22 +1,23 @@
 import { prisma } from "@repo/database";
 import { env } from "../../configs/env.js";
-import { verifyRefreshToken } from "../../lib/jwt.js";
+import { verifyToken } from "../../lib/jwt.js";
 import { redis } from "../../lib/redis.js";
-import { ProtectedData } from "../../types/protected-data.js";
 import { APIError } from "../../utils/api-error.js";
 
 export const logoutService = async ({
-    refreshToken,
     ipAddress,
+    sessionId,
+    refreshToken,
+    userId,
     userAgent,
-    protectedData,
 }: {
-    refreshToken: string;
-    protectedData: ProtectedData;
     ipAddress?: string;
+    sessionId: string;
+    refreshToken: string;
+    userId: string;
     userAgent?: string;
 }) => {
-    const { payload } = await verifyRefreshToken(refreshToken);
+    const { payload } = await verifyToken(refreshToken);
     const { jti, sub, exp, sid } = payload;
     if (!sid || !sub || !jti) {
         throw new APIError(401, {
@@ -24,32 +25,29 @@ export const logoutService = async ({
         });
     }
 
-    const { userId, emailAddress, sessionId } = protectedData;
     if (sub !== userId || sid !== sessionId) {
         throw new APIError(401, {
-            message: "Invalid or malformed either token",
+            message: "Invalid or malformed token",
         });
     }
 
     await prisma.$transaction(async (tx) => {
-        await tx.session.updateMany({
+        await tx.session.delete({
             where: {
-                isRevoked: false,
+                refreshTokenId: jti,
                 id: sid,
                 userId: sub,
             },
-            data: {
-                isRevoked: true,
+            select: {
+                id: true,
             },
         });
+
         await tx.auditLog.create({
             data: {
                 event: "LOGGED_OUT",
                 ipAddress,
                 userAgent,
-                metadata: {
-                    email: emailAddress.email,
-                },
                 user: {
                     connect: {
                         id: sub,

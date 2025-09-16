@@ -4,7 +4,7 @@ import {
     GetAllApplicationApiResponse,
     LoginApiResponse,
     LogoutApiResponse,
-    MeApiResponse,
+    profileInfoApiResponse,
     RefreshApiResponse,
     SignupApiResponse,
     VerifyEmailApiResponse,
@@ -15,8 +15,8 @@ export const signupApi = async (data: AuthApiRequestData) => {
     return apiClient.post<SignupApiResponse>("/auth/signup", data);
 };
 
-export const meApi = async () => {
-    return apiClient.get<MeApiResponse>("/user/me");
+export const profileInfoApi = async () => {
+    return apiClient.get<profileInfoApiResponse>("/user/me");
 };
 
 export const verifyEmailApi = {

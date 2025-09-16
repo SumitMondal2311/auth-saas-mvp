@@ -9,9 +9,12 @@ import { delay } from "../../utils/delay.js";
 import { generateOTP } from "../../utils/generate-otp.js";
 
 export const signupService = async (email: string, password: string): Promise<string> => {
-    const emailAddressRecord = await prisma.emailAddress.findUnique({
+    const emailAddressRecord = await prisma.identifier.findUnique({
         where: {
-            email,
+            value_type: {
+                type: "EMAIL",
+                value: email,
+            },
         },
         select: {
             id: true,
@@ -25,14 +28,13 @@ export const signupService = async (email: string, password: string): Promise<st
         });
     }
 
-    const verificationCode = generateOTP(6);
     const token = randomUUID();
     await redis.set(
         `email-verification:${token}`,
         JSON.stringify({
-            hashedPassword: await hash(password),
             email,
-            verificationCode,
+            code: generateOTP(6),
+            hashedPassword: await hash(password),
         } as VerifyEmailPayload),
         "EX",
         env.EMAIL_VERIFICATION_CODE_EXPIRY

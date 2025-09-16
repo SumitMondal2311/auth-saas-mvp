@@ -1,9 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { IS_PRODUCTION } from "../../configs/constants.js";
 import { env } from "../../configs/env.js";
-import { signAccessToken } from "../../lib/jwt.js";
 import { refreshService } from "../../services/auth/refresh.service.js";
-import { addDurationToNow } from "../../utils/add-duration-to-now.js";
 import { APIError } from "../../utils/api-error.js";
 import { handleAsync } from "../../utils/handle-async.js";
 
@@ -17,26 +15,18 @@ const refreshControllerSync = async (req: Request, res: Response, next: NextFunc
         );
     }
 
-    const { newRefreshToken, userId, emailAddress, sessionId } = await refreshService(refreshToken);
+    const { newRefreshToken, newAccessToken } = await refreshService(refreshToken);
 
     res.clearCookie("__auth-session");
     res.status(200)
         .cookie("__auth-session", newRefreshToken, {
             secure: IS_PRODUCTION,
-            path: "/",
             httpOnly: true,
-            maxAge: env.REFRESH_TOKEN_EXPIRY * 1000,
             sameSite: IS_PRODUCTION ? "none" : "lax",
+            maxAge: env.REFRESH_TOKEN_EXPIRY * 1000,
         })
         .json({
-            accessToken: await signAccessToken(
-                {
-                    sid: sessionId,
-                    sub: userId,
-                    emailAddress,
-                },
-                addDurationToNow(env.ACCESS_TOKEN_EXPIRY * 1000)
-            ),
+            accessToken: newAccessToken,
         });
 };
 

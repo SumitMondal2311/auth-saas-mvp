@@ -1,8 +1,8 @@
-import { AccountProvider, prisma } from "@repo/database";
+import { prisma } from "@repo/database";
 import { verify } from "argon2";
 import { randomUUID } from "crypto";
 import { env } from "../../configs/env.js";
-import { signRefreshToken } from "../../lib/jwt.js";
+import { signToken } from "../../lib/jwt.js";
 import { addDurationToNow } from "../../utils/add-duration-to-now.js";
 import { APIError } from "../../utils/api-error.js";
 import { delay } from "../../utils/delay.js";
@@ -19,16 +19,16 @@ export const loginService = async ({
     password: string;
 }): Promise<{
     refreshToken: string;
-    userId: string;
-    isPrimaryEmail: boolean;
-    sessionId: string;
+    accessToken: string;
 }> => {
-    const emailAddressRecord = await prisma.emailAddress.findUnique({
+    const emailAddressRecord = await prisma.identifier.findUnique({
         where: {
-            email,
+            value_type: {
+                type: "EMAIL",
+                value: email,
+            },
         },
         select: {
-            isPrimary: true,
             userId: true,
         },
     });
@@ -36,21 +36,38 @@ export const loginService = async ({
     if (!emailAddressRecord) {
         await delay(50);
         throw new APIError(401, {
-            message: "Invalid credentials",
+            message: "Invalid email or password",
         });
     }
 
-    const { isPrimary, userId } = emailAddressRecord;
+    const { userId } = emailAddressRecord;
 
-    const auditLogFailedLogin = () => {
-        return prisma.auditLog.create({
+    const accountRecord = await prisma.account.findUnique({
+        where: {
+            providerUserId_provider: {
+                provider: "LOCAL",
+                providerUserId: email,
+            },
+        },
+        select: {
+            hashedPassword: true,
+        },
+    });
+
+    if (!accountRecord || !accountRecord.hashedPassword) {
+        await delay(50);
+        throw new APIError(401, {
+            message: "Invalid email or password",
+        });
+    }
+
+    const passwordMatched = await verify(accountRecord.hashedPassword, password);
+    if (!passwordMatched) {
+        await prisma.auditLog.create({
             data: {
                 event: "LOGIN_FAILED",
                 ipAddress,
                 userAgent,
-                metadata: {
-                    email,
-                },
                 user: {
                     connect: {
                         id: userId,
@@ -61,38 +78,14 @@ export const loginService = async ({
                 id: true,
             },
         });
-    };
-
-    const accountRecord = await prisma.account.findUnique({
-        where: {
-            providerUserId_provider: {
-                provider: AccountProvider.LOCAL,
-                providerUserId: email,
-            },
-        },
-        select: {
-            hashedPassword: true,
-        },
-    });
-
-    if (!accountRecord) {
-        await auditLogFailedLogin();
         throw new APIError(401, {
-            message: "Invalid credentials",
-        });
-    }
-
-    const passwordMatched = await verify(accountRecord.hashedPassword || "", password);
-    if (!passwordMatched) {
-        await auditLogFailedLogin();
-        throw new APIError(401, {
-            message: "Invalid credentials",
+            message: "Invalid email or password",
         });
     }
 
     const refreshTokenId = randomUUID();
     const sessionId = randomUUID();
-    const refreshToken = await signRefreshToken(
+    const refreshToken = await signToken(
         {
             jti: refreshTokenId,
             sub: userId,
@@ -114,15 +107,12 @@ export const loginService = async ({
             },
         });
         if (sessionRecords.length >= env.SESSION_LIMIT) {
-            await tx.session.update({
+            await tx.session.delete({
                 where: {
                     id: sessionRecords[0].id,
                 },
                 select: {
                     id: true,
-                },
-                data: {
-                    isRevoked: true,
                 },
             });
         }
@@ -138,14 +128,9 @@ export const loginService = async ({
                         id: userId,
                     },
                 },
-                emailAddress: {
-                    connect: {
-                        email,
-                    },
-                },
             },
             select: {
-                id: true,
+                loginMethod: true,
             },
         });
         await tx.auditLog.create({
@@ -153,9 +138,6 @@ export const loginService = async ({
                 event: "LOGGED_IN",
                 ipAddress,
                 userAgent,
-                metadata: {
-                    email,
-                },
                 user: {
                     connect: {
                         id: userId,
@@ -170,8 +152,12 @@ export const loginService = async ({
 
     return {
         refreshToken,
-        userId,
-        isPrimaryEmail: isPrimary,
-        sessionId,
+        accessToken: await signToken(
+            {
+                sid: sessionId,
+                sub: userId,
+            },
+            addDurationToNow(env.ACCESS_TOKEN_EXPIRY * 1000)
+        ),
     };
 };

@@ -9,12 +9,12 @@ export const UserAvatar = ({
     className,
     ...props
 }: React.ComponentPropsWithoutRef<typeof Avatar>) => {
-    const { user } = userStore();
+    const { primaryEmail } = userStore();
 
     return (
         <Avatar className={cn(className)} {...props}>
             <AvatarImage src="/profile-img.png" />
-            <AvatarFallback>{user?.emailAddress.email.split("")[0].toUpperCase()}</AvatarFallback>
+            <AvatarFallback>{primaryEmail.split("")[0]?.toUpperCase()}</AvatarFallback>
         </Avatar>
     );
 };

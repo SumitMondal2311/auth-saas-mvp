@@ -10,7 +10,7 @@ import { applicationStore } from "@/store/application.store";
 import { Separator } from "@radix-ui/react-separator";
 
 export const CreateApplicationPreview = () => {
-    const { usernameLogIn, phoneLogIn, githubLogIn } = applicationStore();
+    const { username, phone, github } = applicationStore();
 
     return (
         <div className="pointer-events-none relative mx-auto flex h-[500px] w-96 select-none flex-col justify-center gap-8 border">
@@ -22,8 +22,8 @@ export const CreateApplicationPreview = () => {
                 <div className="flex flex-col gap-4">
                     <div className="space-y-2">
                         <Label id="email" className="flex items-center justify-between">
-                            <span>{usernameLogIn ? "Email or username" : "Email"}</span>
-                            {phoneLogIn ? <span className="underline">Use phone</span> : null}
+                            <span>{username ? "Email or username" : "Email"}</span>
+                            {phone ? <span className="underline">Use phone</span> : null}
                         </Label>
                         <Input id="email" />
                     </div>
@@ -41,8 +41,8 @@ export const CreateApplicationPreview = () => {
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between gap-4">
-                    <GoogleAuthButton label={githubLogIn ? "Google" : undefined} />
-                    {githubLogIn ? <GitHubAuthButton label="GitHub" /> : null}
+                    <GoogleAuthButton label={github ? "Google" : undefined} />
+                    {github ? <GitHubAuthButton label="GitHub" /> : null}
                 </div>
             </div>
         </div>

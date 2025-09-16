@@ -1,14 +1,14 @@
 import { NextFunction, Request, Response } from "express";
 import { IS_PRODUCTION } from "../../configs/constants.js";
 import { env } from "../../configs/env.js";
-import { authSchema } from "../../configs/schemas.js";
+import { emailPasswordSchema } from "../../configs/schemas.js";
 import { signupService } from "../../services/application-auth/signup.service.js";
 import { APIError } from "../../utils/api-error.js";
 import { handleAsync } from "../../utils/handle-async.js";
 
 const signupControllerSync = async (req: Request, res: Response, next: NextFunction) => {
-    const { application } = req;
-    if (!application) {
+    const { applicationInfo } = req;
+    if (!applicationInfo) {
         return next(
             new APIError(401, {
                 message: "Unauthorized",
@@ -16,7 +16,7 @@ const signupControllerSync = async (req: Request, res: Response, next: NextFunct
         );
     }
 
-    const parsedSchema = authSchema.safeParse(req.body);
+    const parsedSchema = emailPasswordSchema.safeParse(req.body);
     if (!parsedSchema.success) {
         return next(
             new APIError(400, {
@@ -28,7 +28,7 @@ const signupControllerSync = async (req: Request, res: Response, next: NextFunct
     const { email, password } = parsedSchema.data;
 
     const token = await signupService({
-        applicationId: application.id,
+        applicationId: applicationInfo.id,
         email,
         password,
     });
@@ -36,7 +36,6 @@ const signupControllerSync = async (req: Request, res: Response, next: NextFunct
     res.status(201)
         .cookie("__email-verification", token, {
             secure: IS_PRODUCTION,
-            path: "/",
             httpOnly: true,
             maxAge: env.EMAIL_VERIFICATION_CODE_EXPIRY * 1000,
             sameSite: IS_PRODUCTION ? "none" : "lax",

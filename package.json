@@ -14,7 +14,7 @@
         "docker:down": "docker-compose --env-file docker/.env.local -f docker/docker-compose.yml down -v",
         "docker:up": "docker-compose --env-file docker/.env.local -f docker/docker-compose.yml up -d",
         "format": "prettier --write \"**/*.{json,js,mjs,ts,jsx,tsx}\"",
-        "lint": "eslint . --ext .tx,.tsx",
+        "lint": "eslint",
         "prepare": "husky",
         "start": "turbo start",
         "start:dev": "turbo start:dev"

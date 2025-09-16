@@ -5,7 +5,6 @@ export const getAllApplicationService = async (
 ): Promise<
     {
         name: string;
-        id: string;
         updatedAt: Date;
     }[]
 > => {
@@ -14,9 +13,8 @@ export const getAllApplicationService = async (
             userId,
         },
         select: {
-            name: true,
-            id: true,
             updatedAt: true,
+            name: true,
         },
     });
 

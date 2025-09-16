@@ -1,7 +1,7 @@
 import { prisma } from "@repo/database";
 import { randomUUID } from "crypto";
 import { env } from "../../configs/env.js";
-import { signRefreshToken, verifyRefreshToken } from "../../lib/jwt.js";
+import { signToken, verifyToken } from "../../lib/jwt.js";
 import { redis } from "../../lib/redis.js";
 import { addDurationToNow } from "../../utils/add-duration-to-now.js";
 import { APIError } from "../../utils/api-error.js";
@@ -10,18 +10,13 @@ export const refreshService = async (
     refreshToken: string
 ): Promise<{
     newRefreshToken: string;
-    userId: string;
-    emailAddress: {
-        isPrimary: boolean;
-        email: string;
-    };
-    sessionId: string;
+    newAccessToken: string;
 }> => {
-    const { payload } = await verifyRefreshToken(refreshToken);
+    const { payload } = await verifyToken(refreshToken);
     const { sid, sub, jti, exp } = payload;
     if (!sid || !sub || !jti) {
         throw new APIError(401, {
-            message: "Invalid refresh token",
+            message: "Invalid token",
         });
     }
 
@@ -32,12 +27,7 @@ export const refreshService = async (
             userId: sub,
         },
         select: {
-            emailAddress: {
-                select: {
-                    isPrimary: true,
-                    email: true,
-                },
-            },
+            id: true,
         },
     });
 
@@ -49,14 +39,14 @@ export const refreshService = async (
 
     if (await redis.exists(`bl-jti:${jti}`)) {
         throw new APIError(403, {
-            message: "Revoked: Refresh token is no longer valid",
+            message: "Token is no longer valid",
         });
     }
 
-    const newRefreshTokenId = randomUUID();
-    const newRefreshToken = await signRefreshToken(
+    const refreshTokenId = randomUUID();
+    const newRefreshToken = await signToken(
         {
-            jti: newRefreshTokenId,
+            jti: refreshTokenId,
             sub,
             sid,
         },
@@ -68,23 +58,25 @@ export const refreshService = async (
             id: sid,
         },
         data: {
-            refreshTokenId: newRefreshTokenId,
+            refreshTokenId,
         },
     });
 
     await redis.set(
         `bl-jti:${jti}`,
-        "revoked",
+        "BL",
         "EX",
         exp ? Math.ceil(Math.max(0, exp - Math.floor(Date.now() / 1000))) : env.REFRESH_TOKEN_EXPIRY
     );
 
-    const { emailAddress } = sessionRecord;
-
     return {
-        sessionId: sid,
         newRefreshToken,
-        userId: sub,
-        emailAddress,
+        newAccessToken: await signToken(
+            {
+                sid,
+                sub,
+            },
+            addDurationToNow(env.ACCESS_TOKEN_EXPIRY * 1000)
+        ),
     };
 };

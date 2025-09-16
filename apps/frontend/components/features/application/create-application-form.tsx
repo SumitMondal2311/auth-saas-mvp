@@ -25,25 +25,25 @@ import { z } from "zod";
 type Schema = z.input<typeof applicationSchema>;
 
 export const CreateApplicationForm = () => {
-    const { setUsernameLogIn, setPhoneLogIn, setGithubLogIn } = applicationStore();
+    const { setUsername, setPhone, setGithub } = applicationStore();
     const { mutate, isPending } = useCreateApplication();
     const form = useForm<Schema>({
         resolver: zodResolver(applicationSchema),
         defaultValues: {
             name: "",
-            usernameLogIn: false,
-            phoneLogIn: false,
-            githubLogIn: false,
+            username: false,
+            phone: false,
+            github: false,
         },
         mode: "onTouched",
     });
 
-    const { usernameLogIn, phoneLogIn, githubLogIn } = form.watch();
+    const { username, phone, github } = form.watch();
     useEffect(() => {
-        setUsernameLogIn(!!usernameLogIn);
-        setPhoneLogIn(!!phoneLogIn);
-        setGithubLogIn(!!githubLogIn);
-    }, [usernameLogIn, phoneLogIn, githubLogIn, setUsernameLogIn, setPhoneLogIn, setGithubLogIn]);
+        setUsername(!!username);
+        setPhone(!!phone);
+        setGithub(!!github);
+    }, [username, phone, github, setUsername, setPhone, setGithub]);
 
     const onSubmit = (data: Schema) => {
         mutate(data);
@@ -57,12 +57,12 @@ export const CreateApplicationForm = () => {
         label: string;
     }[] = [
         {
-            name: "usernameLogIn",
+            name: "username",
             Icon: User,
             label: "Username",
         },
         {
-            name: "phoneLogIn",
+            name: "phone",
             Icon: Phone,
             label: "Phone",
         },
@@ -144,7 +144,7 @@ export const CreateApplicationForm = () => {
                         </div>
                         <FormField
                             control={form.control}
-                            name="githubLogIn"
+                            name="github"
                             render={({ field }) => (
                                 <FormItem className="flex items-center justify-between p-2">
                                     <FormLabel className="flex items-center">

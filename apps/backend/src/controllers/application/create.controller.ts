@@ -5,7 +5,7 @@ import { APIError } from "../../utils/api-error.js";
 import { handleAsync } from "../../utils/handle-async.js";
 
 const createApplicationControllerSync = async (req: Request, res: Response, next: NextFunction) => {
-    const data = req.protectedData;
+    const data = req.activeSession;
     if (!data) {
         return next(
             new APIError(401, {
@@ -23,13 +23,13 @@ const createApplicationControllerSync = async (req: Request, res: Response, next
         );
     }
 
-    const { name, usernameLogIn, phoneLogIn, githubLogIn } = parsedSchema.data;
+    const { name, username, phone, github } = parsedSchema.data;
     const application = await createApplicationService({
         userId: data.userId,
         name,
-        usernameLogIn,
-        phoneLogIn,
-        githubLogIn,
+        username,
+        phone,
+        github,
     });
 
     res.status(201).json({

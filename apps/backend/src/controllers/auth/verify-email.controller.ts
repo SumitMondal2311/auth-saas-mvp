@@ -2,9 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { IS_PRODUCTION } from "../../configs/constants.js";
 import { env } from "../../configs/env.js";
 import { verificationCodeSchema } from "../../configs/schemas.js";
-import { signAccessToken } from "../../lib/jwt.js";
 import { verifyEmailService } from "../../services/auth/verify-email.service.js";
-import { addDurationToNow } from "../../utils/add-duration-to-now.js";
 import { APIError } from "../../utils/api-error.js";
 import { handleAsync } from "../../utils/handle-async.js";
 import { normalizedIP } from "../../utils/normalized-ip.js";
@@ -47,7 +45,7 @@ export const verifyEmailController = {
 
         const { code } = parsedSchema.data;
 
-        const { refreshToken, userId, emailAddress, sessionId } = await verifyEmailService.POST({
+        const { refreshToken, accessToken } = await verifyEmailService.POST({
             userAgent: req.headers["user-agent"],
             code,
             ipAddress: normalizedIP(req.ip || "unknown"),
@@ -57,21 +55,13 @@ export const verifyEmailController = {
         res.status(200)
             .cookie("__auth-session", refreshToken, {
                 secure: IS_PRODUCTION,
-                path: "/",
                 httpOnly: true,
-                maxAge: env.REFRESH_TOKEN_EXPIRY * 1000,
                 sameSite: IS_PRODUCTION ? "none" : "lax",
+                maxAge: env.REFRESH_TOKEN_EXPIRY * 1000,
             })
             .clearCookie("__email-verification")
             .json({
-                accessToken: await signAccessToken(
-                    {
-                        sid: sessionId,
-                        sub: userId,
-                        emailAddress,
-                    },
-                    addDurationToNow(env.ACCESS_TOKEN_EXPIRY * 1000)
-                ),
+                accessToken,
                 message: "Email verified successfully",
             });
     }),

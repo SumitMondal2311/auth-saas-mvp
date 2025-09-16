@@ -7,6 +7,7 @@
         "check-types": "tsc --noEmit",
         "clean": "rm -rf .turbo dist",
         "dev": "NODE_ENV=development tsx watch ./src/server.ts",
+        "lint": "eslint",
         "start": "NODE_ENV=production node ./dist/server.js",
         "start:dev": "NODE_ENV=development node ./dist/server.js"
     },
@@ -18,6 +19,7 @@
         "helmet": "^8.1.0",
         "ioredis": "^5.7.0",
         "jose": "^6.1.0",
+        "libphonenumber-js": "^1.12.17",
         "morgan": "^1.10.0"
     },
     "devDependencies": {

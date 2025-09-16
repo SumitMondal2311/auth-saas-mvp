@@ -1,12 +1,14 @@
 import { NextFunction, Request, Response } from "express";
-import { verifyAccessToken } from "../lib/jwt.js";
-import { ProtectedData } from "../types/protected-data.js";
+import { verifyToken } from "../lib/jwt.js";
 import { APIError } from "../utils/api-error.js";
 import { handleAsync } from "../utils/handle-async.js";
 
 declare module "express" {
     interface Request {
-        protectedData?: ProtectedData;
+        activeSession?: {
+            id: string;
+            userId: string;
+        };
     }
 }
 
@@ -29,20 +31,19 @@ const authMiddlewareSync = async (req: Request, _res: Response, next: NextFuncti
         );
     }
 
-    const { payload } = await verifyAccessToken(accessToken);
-    const { sub, emailAddress, sid } = payload;
-    if (!sub || !emailAddress || !sid) {
+    const { payload } = await verifyToken(accessToken);
+    const { sub, sid } = payload;
+    if (!sub || !sid) {
         return next(
             new APIError(401, {
-                message: "Invalid access token",
+                message: "Invalid token",
             })
         );
     }
 
-    req.protectedData = {
-        sessionId: sid,
+    req.activeSession = {
+        id: sid,
         userId: sub,
-        emailAddress,
     };
 
     next();

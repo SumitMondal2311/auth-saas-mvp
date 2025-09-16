@@ -17,10 +17,11 @@ export const signupService = async ({
     email: string;
     password: string;
 }): Promise<string> => {
-    const emailAddressRecord = await prisma.applicationEmailAddress.findUnique({
+    const emailAddressRecord = await prisma.applicationIdentifier.findUnique({
         where: {
-            email_applicationId: {
-                email,
+            value_type_applicationId: {
+                type: "EMAIL",
+                value: email,
                 applicationId,
             },
         },
@@ -36,18 +37,19 @@ export const signupService = async ({
         });
     }
 
-    const verificationCode = generateOTP(6);
     const token = randomUUID();
     await redis.set(
         `application-email-verification:${token}`,
         JSON.stringify({
-            hashedPassword: await hash(password),
+            code: generateOTP(6),
             email,
-            verificationCode,
+            hashedPassword: await hash(password),
         } as VerifyEmailPayload),
         "EX",
         env.EMAIL_VERIFICATION_CODE_EXPIRY
     );
+
+    // TODO: implement EMAIL provider
 
     return token;
 };

@@ -11,14 +11,12 @@ export class APIError extends Error {
     ) {
         super(message);
 
-        this.name = "API-Error";
         this.statusCode = statusCode;
     }
 
     toJSON() {
         return {
-            success: "false",
-            name: this.name,
+            name: "API-Error",
             statusCode: this.statusCode,
             message: this.message,
         };

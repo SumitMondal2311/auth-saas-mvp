@@ -11,7 +11,7 @@ import { UserAvatar } from "./user-avatar";
 
 export const ProfileMenu = ({ children }: { children: ReactNode }) => {
     const { mutate } = useLogout();
-    const { user } = userStore();
+    const { primaryEmail } = userStore();
     const [open, setOpen] = useState(false);
     const { setOpenProfileModel } = globalStore();
 
@@ -21,9 +21,7 @@ export const ProfileMenu = ({ children }: { children: ReactNode }) => {
             <PopoverContent side="bottom" className="relative right-4 flex flex-col p-0">
                 <div className="flex items-center gap-2 px-4 pb-2 pt-4">
                     <UserAvatar />
-                    <span className="overflow-hidden text-ellipsis">
-                        {user?.emailAddress.email}
-                    </span>
+                    <span className="overflow-hidden text-ellipsis">{primaryEmail}</span>
                 </div>
                 <div className="divide-y">
                     <div className="flex justify-between px-4 pb-4 pt-2">

@@ -11,7 +11,7 @@ const parsedSchema = envSchema.safeParse(process.env);
 
 if (!parsedSchema.success) {
     parsedSchema.error.issues.forEach((issue) => {
-        console.error(`ENV Error: ${issue.path.join(".")} -> ${issue.message}`);
+        console.error(`ENV Error: ${issue.path.join(", ")} -> ${issue.message}`);
     });
     process.exit(1);
 }

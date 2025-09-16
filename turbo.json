@@ -8,15 +8,14 @@
         "backend#build": {
             "dependsOn": ["^build"],
             "env": [
+                "PHONE_LOGIN_CODE_EXPIRY",
+                "DATABASE_MAX_RETRIES",
+                "SESSION_LIMIT",
                 "PORT",
                 "API_ORIGIN",
                 "WEB_ORIGIN",
-                "DATABASE_MAX_RETRIES",
                 "DATABASE_URL",
-                "SESSION_LIMIT",
-                "JWT_AUD",
                 "JWT_KID",
-                "JWT_ISS",
                 "REFRESH_TOKEN_EXPIRY",
                 "REDIS_URL",
                 "EMAIL_VERIFICATION_CODE_EXPIRY",
@@ -26,7 +25,7 @@
         },
         "frontend#build": {
             "dependsOn": ["^build"],
-            "env": ["NEXT_PUBLIC_API_ORIGIN"],
+            "env": ["NEXT_PUBLIC_BASE_URL"],
             "outputs": [".next/**", "!.next/cache/**"]
         },
         "@repo/database#build": {

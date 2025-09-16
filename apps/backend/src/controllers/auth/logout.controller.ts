@@ -14,7 +14,7 @@ const logoutControllerSync = async (req: Request, res: Response, next: NextFunct
         );
     }
 
-    const data = req.protectedData;
+    const data = req.activeSession;
     if (!data) {
         return next(
             new APIError(401, {
@@ -23,11 +23,14 @@ const logoutControllerSync = async (req: Request, res: Response, next: NextFunct
         );
     }
 
+    const { id, userId } = data;
+
     await logoutService({
-        refreshToken,
-        userAgent: req.headers["user-agent"],
         ipAddress: normalizedIP(req.ip || "unknown"),
-        protectedData: data,
+        userAgent: req.headers["user-agent"],
+        refreshToken,
+        userId,
+        sessionId: id,
     });
 
     res.status(200).clearCookie("__auth-session").json({ message: "Logged out successfully" });

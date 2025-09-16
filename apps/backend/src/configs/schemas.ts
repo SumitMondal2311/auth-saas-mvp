@@ -1,19 +1,17 @@
 import z from "zod";
-import { validateUUID } from "../utils/validate-uuid.js";
 
 export const envSchema = z
     .object({
-        NODE_ENV: z.enum(["development", "test", "production"]),
+        EMAIL_VERIFICATION_CODE_EXPIRY: z.string().transform(Number),
+        NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+        ACCESS_TOKEN_EXPIRY: z.string().transform(Number),
         PORT: z.string().default("4321").transform(Number),
         DATABASE_URL: z.string(),
         REDIS_URL: z.string(),
         WEB_ORIGIN: z.string().url(),
         API_ORIGIN: z.string().url().optional(),
-        ACCESS_TOKEN_EXPIRY: z.string().transform(Number),
-        JWT_AUD: z.string(),
-        JWT_ISS: z.string(),
         JWT_KID: z.string(),
-        EMAIL_VERIFICATION_CODE_EXPIRY: z.string().transform(Number),
+        PHONE_LOGIN_CODE_EXPIRY: z.string().transform(Number),
         SESSION_LIMIT: z.string().transform(Number),
         DATABASE_MAX_RETRIES: z.string().transform(Number),
         REFRESH_TOKEN_EXPIRY: z.string().transform(Number),
@@ -33,36 +31,55 @@ export const envSchema = z
     });
 
 export const verificationCodeSchema = z.object({
-    code: z.string().nonempty("Code required").min(6, "Incorrect code").max(6, "Incorrect code"),
+    code: z
+        .string({
+            required_error: "Code required",
+        })
+        .trim()
+        .min(6, "Incorrect code")
+        .max(6, "Incorrect code"),
 });
 
-export const authSchema = z.object({
+export const emailPasswordSchema = z.object({
     email: z
-        .string()
+        .string({
+            required_error: "Email required",
+        })
+        .trim()
         .email("Invalid email")
         .transform((email) => email.toLowerCase()),
-    password: z.string().min(12, "Password must contain at least 12 characters"),
+    password: z
+        .string({
+            required_error: "Password required",
+        })
+        .trim()
+        .min(12, "Password must contain at least 12 characters"),
 });
 
 export const applicationSchema = z.object({
-    name: z.string().nonempty("Name required"),
-    usernameLogIn: z.boolean().default(false),
-    phoneLogIn: z.boolean().default(false),
-    githubLogIn: z.boolean().default(false),
+    username: z.boolean().default(false),
+    phone: z.boolean().default(false),
+    github: z.boolean().default(false),
+    name: z.string({ required_error: "Name required" }),
 });
 
 export const applicationMiddlewareSchema = z.object({
-    publishableKey: z
-        .string()
-        .nonempty("Required publishable key")
-        .startsWith("pk_")
-        .refine(
-            (val) => {
-                const [_prefix, key] = val.split("_");
-                return validateUUID(key);
-            },
-            {
-                message: "Invalid publishable key",
-            }
-        ),
+    publicKey: z
+        .string({
+            required_error: "Public key required",
+        })
+        .startsWith("pk_"),
+});
+
+export const usernamePasswordSchema = z.object({
+    username: z
+        .string({
+            required_error: "Username required",
+        })
+        .regex(/^[a-z0-9A-Z_]+$/, "Invalid username"),
+    password: z
+        .string({
+            required_error: "Password required",
+        })
+        .min(12, "Password must contain at least 12 characters"),
 });

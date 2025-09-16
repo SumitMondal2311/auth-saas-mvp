@@ -1,13 +1,13 @@
 import { Application } from "./application";
-import { User } from "./user";
+import { ProfileInfo } from "./profile-info";
 
 export type SignupApiResponse = {
     message: string;
     accessToken: string;
 };
 
-export type MeApiResponse = {
-    user: User;
+export type profileInfoApiResponse = {
+    profileInfo: ProfileInfo;
     message: string;
 };
 

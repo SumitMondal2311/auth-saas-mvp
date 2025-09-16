@@ -1,18 +1,17 @@
 import { prisma } from "@repo/database";
 import { NextFunction, Request, Response } from "express";
-import "http";
 import { applicationMiddlewareSchema } from "../configs/schemas.js";
 import { APIError } from "../utils/api-error.js";
 import { handleAsync } from "../utils/handle-async.js";
 
 declare module "express" {
     interface Request {
-        application?: {
+        applicationInfo?: {
             id: string;
-            options: {
-                usernameLogIn: boolean;
-                phoneLogIn: boolean;
-                githubLogIn: boolean;
+            loginOptions: {
+                username: boolean;
+                phone: boolean;
+                github: boolean;
             };
         };
     }
@@ -20,14 +19,15 @@ declare module "express" {
 
 declare module "http" {
     interface IncomingHttpHeaders {
-        "x-publishable-key": string;
+        "x-public-key": string;
     }
 }
 
 const applicationMiddlewareSync = async (req: Request, _res: Response, next: NextFunction) => {
     const parsedSchema = applicationMiddlewareSchema.safeParse({
-        publishableKey: req.headers["x-publishable-key"],
+        publicKey: req.headers["x-public-key"],
     });
+
     if (!parsedSchema.success) {
         return next(
             new APIError(400, {
@@ -36,17 +36,17 @@ const applicationMiddlewareSync = async (req: Request, _res: Response, next: Nex
         );
     }
 
-    const { publishableKey } = parsedSchema.data;
+    const { publicKey } = parsedSchema.data;
 
     const applicationRecord = await prisma.application.findUnique({
         where: {
-            publishableKey,
+            publicKey,
         },
         select: {
+            username: true,
             id: true,
-            usernameLogIn: true,
-            phoneLogIn: true,
-            githubLogIn: true,
+            mobile: true,
+            github: true,
         },
     });
 
@@ -58,14 +58,14 @@ const applicationMiddlewareSync = async (req: Request, _res: Response, next: Nex
         );
     }
 
-    const { id, usernameLogIn, phoneLogIn, githubLogIn } = applicationRecord;
+    const { id, username, mobile, github } = applicationRecord;
 
-    req.application = {
+    req.applicationInfo = {
         id,
-        options: {
-            usernameLogIn,
-            phoneLogIn,
-            githubLogIn,
+        loginOptions: {
+            username,
+            phone: mobile,
+            github,
         },
     };
 

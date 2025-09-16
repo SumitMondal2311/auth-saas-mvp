@@ -1,7 +1,7 @@
 "use client";
 
 import { AUTH_ROUTES } from "@/configs/frontend-routes";
-import { useMe } from "@/hooks/use-me";
+import { useMe } from "@/hooks/use-profile-info";
 import { usePathname } from "next/navigation";
 import { ReactNode, useEffect } from "react";
 

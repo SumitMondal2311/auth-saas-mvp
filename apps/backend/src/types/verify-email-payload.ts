@@ -1,5 +1,5 @@
 export type VerifyEmailPayload = {
-    hashedPassword: string;
     email: string;
-    verificationCode: string;
+    code: string;
+    hashedPassword: string;
 };

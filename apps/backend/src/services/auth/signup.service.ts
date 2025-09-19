@@ -23,7 +23,7 @@ export const signupService = async (email: string, password: string): Promise<st
 
     if (emailAddressRecord) {
         await delay(50);
-        throw new APIError(409, {
+        throw new APIError(422, {
             message: "Email is already registered",
         });
     }

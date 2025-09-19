@@ -4,22 +4,54 @@ import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { emailVerificationSchema } from "@/configs/schemas";
-import { useVerifyEmail } from "@/hooks/use-verify-email";
+import { apiClient } from "@/lib/axios";
+import { ApiErrorResponse } from "@/types/api-error-response";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { AxiosError } from "axios";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { toast } from "sonner";
+import z from "zod";
 
 type Schema = z.infer<typeof emailVerificationSchema>;
 
-export function EmailVerificationForm() {
-    const { mutate, isPending } = useVerifyEmail.POST();
+const api = async (data: Schema) => {
+    return await apiClient.post<{
+        message: string;
+    }>("/api/auth/verify-email", data);
+};
+
+export default function EmailVerificationForm() {
+    const router = useRouter();
+    const { mutate, isPending } = useMutation<
+        Awaited<ReturnType<typeof api>>,
+        AxiosError<ApiErrorResponse>,
+        {
+            code: string;
+        }
+    >({
+        mutationFn: api,
+        onError: (error) => {
+            if (error.response) {
+                toast.error(error.response.data.message);
+            } else {
+                throw error;
+            }
+        },
+        onSuccess: (response) => {
+            const { message } = response.data;
+            toast.success(message || "Email verified successfully");
+            router.push("/dashboard");
+        },
+    });
 
     const form = useForm<Schema>({
         resolver: zodResolver(emailVerificationSchema),
         defaultValues: {
             code: "",
         },
-        mode: "onTouched",
+        mode: "onBlur",
     });
 
     const onSubmit = (data: Schema) => {

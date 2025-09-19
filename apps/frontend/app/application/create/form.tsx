@@ -12,23 +12,64 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { applicationSchema } from "@/configs/schemas";
-import { useCreateApplication } from "@/hooks/use-create-application";
+import { createApplicationSchema } from "@/configs/schemas";
+import { apiClient } from "@/lib/axios";
 import { applicationStore } from "@/store/application.store";
+import { ApiErrorResponse } from "@/types/api-error-response";
+import { Application } from "@/types/application";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { AxiosError } from "axios";
 import { LucideProps, Mail, Phone, User } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
-type Schema = z.input<typeof applicationSchema>;
+type Schema = z.input<typeof createApplicationSchema>;
 
-export const CreateApplicationForm = () => {
-    const { setUsername, setPhone, setGithub } = applicationStore();
-    const { mutate, isPending } = useCreateApplication();
+const api = async (data: Schema) => {
+    return await apiClient.post<{
+        message: string;
+        application: Application;
+    }>("/api/application/create", data);
+};
+
+export default function CreateApplicationForm() {
+    const router = useRouter();
+
+    const { mutate, isPending } = useMutation<
+        Awaited<ReturnType<typeof api>>,
+        AxiosError<ApiErrorResponse>,
+        {
+            name: string;
+            username: boolean;
+            phone: boolean;
+            github: boolean;
+        }
+    >({
+        mutationFn: api,
+        onError: (error) => {
+            if (error.response) {
+                toast.error(error.response.data.message);
+            } else {
+                throw error;
+            }
+        },
+        onSuccess: (response) => {
+            const { application, message } = response.data;
+            applicationStore.setState((state) => ({
+                applications: [application, ...state.applications],
+            }));
+            toast.success(message || "Created application successfully");
+            router.push("/dashboard");
+        },
+    });
+
     const form = useForm<Schema>({
-        resolver: zodResolver(applicationSchema),
+        resolver: zodResolver(createApplicationSchema),
         defaultValues: {
             name: "",
             username: false,
@@ -40,10 +81,12 @@ export const CreateApplicationForm = () => {
 
     const { username, phone, github } = form.watch();
     useEffect(() => {
-        setUsername(!!username);
-        setPhone(!!phone);
-        setGithub(!!github);
-    }, [username, phone, github, setUsername, setPhone, setGithub]);
+        applicationStore.setState({
+            username,
+            phone,
+            github,
+        });
+    }, [username, phone, github]);
 
     const onSubmit = (data: Schema) => {
         mutate(data);
@@ -177,4 +220,4 @@ export const CreateApplicationForm = () => {
             </form>
         </Form>
     );
-};
+}

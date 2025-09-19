@@ -1,7 +1,7 @@
 "use client";
 
-import { GitHubAuthButton } from "@/components/features/auth/github-auth-button";
-import { GoogleAuthButton } from "@/components/features/auth/google-auth-button";
+import { GitHubAuthButton } from "@/components/social-auth-button/github";
+import { GoogleAuthButton } from "@/components/social-auth-button/google";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { applicationStore } from "@/store/application.store";
 import { Separator } from "@radix-ui/react-separator";
 
-export const CreateApplicationPreview = () => {
+export default function ComponentPreview() {
     const { username, phone, github } = applicationStore();
 
     return (
@@ -47,4 +47,4 @@ export const CreateApplicationPreview = () => {
             </div>
         </div>
     );
-};
+}

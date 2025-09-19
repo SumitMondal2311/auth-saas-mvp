@@ -4,7 +4,7 @@ export const emailVerificationSchema = z.object({
     code: z.string().min(6, "Code should be exactly 6 characters long"),
 });
 
-export const authenticationSchema = z.object({
+export const authSchema = z.object({
     email: z
         .string()
         .email("Invalid email")
@@ -12,7 +12,7 @@ export const authenticationSchema = z.object({
     password: z.string().min(12, "Password must contain at least 12 characters"),
 });
 
-export const applicationSchema = z.object({
+export const createApplicationSchema = z.object({
     username: z.boolean(),
     phone: z.boolean(),
     github: z.boolean(),

@@ -3,20 +3,17 @@
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { globalStore } from "@/store/global.store";
-import { userStore } from "@/store/user.store";
-import { Logs, LucideProps, Settings2, ShieldCheck } from "lucide-react";
-import React, { useState } from "react";
-import { AccountAuditLogs } from "./account-audit-logs";
-import { AccountPreferences } from "./account-preferences";
-import { AccountSecurity } from "./account-security";
+import { Logs, LucideIcon, Settings2, ShieldCheck } from "lucide-react";
+import { useState } from "react";
+import { AuditLogs } from "./settings-dialog-tabs/audit-logs";
+import { Preferences } from "./settings-dialog-tabs/preferences";
+import { Security } from "./settings-dialog-tabs/security";
 
-type Item = "Preferences" | "Security" | "Audit Logs";
+type Tab = "Preferences" | "Security" | "Audit Logs";
 
-const items: {
-    Icon: React.ForwardRefExoticComponent<
-        Omit<LucideProps, "ref"> & React.RefAttributes<SVGSVGElement>
-    >;
-    label: Item;
+const tabs: {
+    Icon: LucideIcon;
+    label: Tab;
 }[] = [
     {
         Icon: Settings2,
@@ -32,10 +29,9 @@ const items: {
     },
 ];
 
-export const ManageAccountModal = () => {
-    const [content, setContent] = useState<Item>("Preferences");
+export const SettingsDialog = () => {
+    const [tab, setTab] = useState<Tab>("Preferences");
     const { openProfileModel, setOpenProfileModel } = globalStore();
-    const { primaryEmail } = userStore();
 
     return (
         <Dialog open={openProfileModel} onOpenChange={setOpenProfileModel}>
@@ -47,24 +43,26 @@ export const ManageAccountModal = () => {
                 </DialogHeader>
                 <div className="h-140 flex flex-1 divide-x rounded-md border">
                     <section className="w-40 space-y-2 p-2">
-                        {items.map((item, idx) => (
+                        {tabs.map((t, idx) => (
                             <Button
-                                onClick={() => setContent(item.label)}
+                                onClick={() => setTab(t.label)}
                                 key={idx}
-                                variant={content === item.label ? "secondary" : "ghost"}
+                                variant={tab === t.label ? "secondary" : "ghost"}
                                 className="w-full cursor-pointer justify-start"
                             >
-                                <item.Icon />
-                                <span>{item.label}</span>
+                                <t.Icon />
+                                <span>{t.label}</span>
                             </Button>
                         ))}
                     </section>
                     <section className="flex-1 space-y-4 divide-y p-4">
-                        {content === "Preferences" ? (
-                            <AccountPreferences email={primaryEmail} />
-                        ) : null}
-                        {content === "Security" ? <AccountSecurity /> : null}
-                        {content === "Audit Logs" ? <AccountAuditLogs /> : null}
+                        {tab === "Audit Logs" ? (
+                            <AuditLogs />
+                        ) : tab === "Security" ? (
+                            <Security />
+                        ) : (
+                            <Preferences />
+                        )}
                     </section>
                 </div>
             </DialogContent>

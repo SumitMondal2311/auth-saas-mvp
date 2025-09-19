@@ -30,7 +30,7 @@ export const phoneLoginService = async ({
 
     if (!phoneNumberRecord) {
         await delay(50);
-        throw new APIError(401, {
+        throw new APIError(422, {
             message: "Invalid phone number",
         });
     }

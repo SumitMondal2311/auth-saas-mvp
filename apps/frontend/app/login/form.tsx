@@ -3,21 +3,51 @@
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { authenticationSchema } from "@/configs/schemas";
-import { useSignup } from "@/hooks/use-signup";
-import { cn } from "@/lib/cn";
+import { authSchema } from "@/configs/schemas";
+import { apiClient } from "@/lib/axios";
+import { ApiErrorResponse } from "@/types/api-error-response";
+import { cn } from "@/utils/cn";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { AxiosError } from "axios";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { z } from "zod";
 
-type Schema = z.infer<typeof authenticationSchema>;
+type Schema = z.infer<typeof authSchema>;
 
-export function SignupForm() {
-    const { mutate, isPending } = useSignup();
+const api = async (data: Schema) => {
+    return await apiClient.post<{
+        message: string;
+    }>("/api/auth/login", data);
+};
+
+export default function LoginForm() {
+    const router = useRouter();
+    const { mutate, isPending } = useMutation<
+        Awaited<ReturnType<typeof api>>,
+        AxiosError<ApiErrorResponse>,
+        Schema
+    >({
+        mutationFn: api,
+        onError: (error) => {
+            if (error.response) {
+                toast.error(error.response.data.message);
+            } else {
+                throw error;
+            }
+        },
+        onSuccess: (response) => {
+            const { message } = response.data;
+            toast.success(message || "Logged in successfully");
+            router.push("/dashboard");
+        },
+    });
 
     const form = useForm<Schema>({
-        resolver: zodResolver(authenticationSchema),
+        resolver: zodResolver(authSchema),
         defaultValues: {
             email: "",
             password: "",
@@ -70,9 +100,9 @@ export function SignupForm() {
                     Continue
                 </Button>
                 <div className="flex items-center self-center">
-                    <p className="text-sm">Already have an account?</p>
+                    <p className="text-sm">Don't have an account?</p>
                     <Link
-                        href="/login"
+                        href="/signup"
                         className={cn(
                             buttonVariants({
                                 variant: "link",
@@ -80,7 +110,7 @@ export function SignupForm() {
                             "text-blue-600"
                         )}
                     >
-                        Log in
+                        Sign up
                     </Link>
                 </div>
             </form>

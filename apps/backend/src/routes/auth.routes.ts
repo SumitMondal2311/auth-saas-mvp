@@ -5,12 +5,17 @@ import { refreshController } from "../controllers/auth/refresh.controller.js";
 import { signupController } from "../controllers/auth/signup.controller.js";
 import { verifyEmailController } from "../controllers/auth/verify-email.controller.js";
 import { authMiddleware } from "../middlewares/auth.middleware.js";
+import { validBodyMiddleware } from "../middlewares/valid-body.middleware.js";
 
 export const authRouter: Router = Router();
 
+authRouter.use(["/signup", "/login"], validBodyMiddleware);
+
 authRouter.post("/signup", signupController);
-authRouter.post("/verify-email", verifyEmailController.POST);
-authRouter.get("/verify-email", verifyEmailController.GET);
+authRouter
+    .route("/verify-email")
+    .post(validBodyMiddleware, verifyEmailController.POST)
+    .get(verifyEmailController.GET);
 authRouter.post("/login", loginController);
 authRouter.post("/refresh", refreshController);
 authRouter.post("/logout", authMiddleware, logoutController);

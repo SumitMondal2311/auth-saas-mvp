@@ -1,6 +1,6 @@
 import { Toaster } from "@/components/ui/sonner";
-import { QueryProvider } from "@/lib/providers/query.provider";
-import { UserInfoProvider } from "@/lib/providers/user-info.provider";
+import { ProfileInfoProvider } from "@/providers/profile-info.provider";
+import { QueryProvider } from "@/providers/query.provider";
 import { Outfit, Space_Grotesk } from "next/font/google";
 import "../styles/index.css";
 
@@ -26,7 +26,7 @@ export default function RootLayout({
         <html lang="en">
             <body className={`${outfit.variable} ${spaceGrotesk.variable}`}>
                 <QueryProvider>
-                    <UserInfoProvider>{children}</UserInfoProvider>
+                    <ProfileInfoProvider>{children}</ProfileInfoProvider>
                 </QueryProvider>
                 <Toaster />
             </body>

@@ -35,7 +35,7 @@ export const loginService = async ({
 
     if (!emailAddressRecord) {
         await delay(50);
-        throw new APIError(401, {
+        throw new APIError(422, {
             message: "Invalid email or password",
         });
     }
@@ -56,7 +56,7 @@ export const loginService = async ({
 
     if (!accountRecord || !accountRecord.hashedPassword) {
         await delay(50);
-        throw new APIError(401, {
+        throw new APIError(422, {
             message: "Invalid email or password",
         });
     }
@@ -78,7 +78,7 @@ export const loginService = async ({
                 id: true,
             },
         });
-        throw new APIError(401, {
+        throw new APIError(422, {
             message: "Invalid email or password",
         });
     }

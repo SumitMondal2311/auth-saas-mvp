@@ -1,7 +1,7 @@
-import { cn } from "@/lib/cn";
+import { cn } from "@/utils/cn";
 import Image from "next/image";
 import Link from "next/link";
-import { buttonVariants } from "../../ui/button";
+import { buttonVariants } from "../ui/button";
 
 export function GitHubAuthButton({ label = "Continue with GitHub" }: { label?: string }) {
     return (

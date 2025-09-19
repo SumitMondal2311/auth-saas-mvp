@@ -1,7 +1,7 @@
-import { CreateApplicationForm } from "@/components/features/application/create-application-form";
-import { CreateApplicationPreview } from "@/components/features/application/create-application-preview";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import ComponentPreview from "./component-preview";
+import CreateApplicationForm from "./form";
 
 export default function CreateApplicationPage() {
     return (
@@ -20,7 +20,7 @@ export default function CreateApplicationPage() {
                 </div>
             </section>
             <section className="hidden w-1/2 items-center px-4 md:flex">
-                <CreateApplicationPreview />
+                <ComponentPreview />
             </section>
         </div>
     );

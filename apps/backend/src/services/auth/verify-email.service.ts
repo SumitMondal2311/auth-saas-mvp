@@ -32,7 +32,7 @@ export const verifyEmailService = {
 
         const { hashedPassword, code: storedCode, email } = JSON.parse(data) as VerifyEmailPayload;
         if (!constantTimeCompare(code, storedCode)) {
-            throw new APIError(400, {
+            throw new APIError(422, {
                 message: "Incorrect code",
             });
         }
@@ -167,7 +167,7 @@ export const verifyEmailService = {
     GET: async (token: string): Promise<string> => {
         const data = await redis.get(`email-verification:${token}`);
         if (!data) {
-            throw new APIError(400, {
+            throw new APIError(422, {
                 message: "Invalid or expired token",
             });
         }

@@ -1,14 +1,13 @@
 import { AUTH_ROUTES } from "@/configs/frontend-routes";
 import { authStore } from "@/store/auth.store";
 import axios, { AxiosError, AxiosRequestConfig } from "axios";
-import { refreshApi } from "./api";
 
 interface RetryableRequest extends AxiosRequestConfig {
     _retry?: boolean;
 }
 
 export const apiClient = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_ORIGIN,
+    baseURL: process.env.NEXT_PUBLIC_BASE_URL,
     withCredentials: true,
     headers: {
         "Content-Type": "application/json",
@@ -73,7 +72,9 @@ apiClient.interceptors.response.use(
         refreshing = true;
 
         try {
-            const { data } = await refreshApi();
+            const { data } = await apiClient.post<{
+                accessToken: string;
+            }>("/api/auth/refresh");
             const { accessToken } = data;
             authStore.setState({ accessToken });
             processQueue(null, accessToken);

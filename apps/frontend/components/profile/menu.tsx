@@ -2,25 +2,54 @@
 
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { useLogout } from "@/hooks/use-logout";
+import { UserProfileImage } from "@/components/user-profile-image";
+import { apiClient } from "@/lib/axios";
+import { authStore } from "@/store/auth.store";
 import { globalStore } from "@/store/global.store";
 import { userStore } from "@/store/user.store";
+import { ApiErrorResponse } from "@/types/api-error-response";
+import { useMutation } from "@tanstack/react-query";
+import { AxiosError } from "axios";
 import { LogOut, PlusCircle, UserCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { ReactNode, useState } from "react";
-import { UserAvatar } from "./user-avatar";
+import { toast } from "sonner";
+
+const api = () => {
+    return apiClient.post<{
+        message: string;
+    }>("/api/auth/logout");
+};
 
 export const ProfileMenu = ({ children }: { children: ReactNode }) => {
-    const { mutate } = useLogout();
+    const router = useRouter();
     const { primaryEmail } = userStore();
     const [open, setOpen] = useState(false);
     const { setOpenProfileModel } = globalStore();
+
+    const { mutate } = useMutation<Awaited<ReturnType<typeof api>>, AxiosError<ApiErrorResponse>>({
+        mutationFn: api,
+        onSuccess: (response) => {
+            const { message } = response.data;
+            toast.success(message || "Logged out successfully");
+            authStore.setState({ accessToken: null });
+            router.push("/login");
+        },
+        onError: (error) => {
+            if (error.response) {
+                toast.error(error.response?.data?.message);
+            } else {
+                throw error;
+            }
+        },
+    });
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger className="cursor-pointer">{children}</PopoverTrigger>
             <PopoverContent side="bottom" className="relative right-4 flex flex-col p-0">
                 <div className="flex items-center gap-2 px-4 pb-2 pt-4">
-                    <UserAvatar />
+                    <UserProfileImage />
                     <span className="overflow-hidden text-ellipsis">{primaryEmail}</span>
                 </div>
                 <div className="divide-y">

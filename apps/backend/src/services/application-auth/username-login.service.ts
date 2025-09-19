@@ -33,33 +33,12 @@ export const usernameLoginService = async ({
     });
 
     if (!accountRecord || !accountRecord.hashedPassword) {
-        throw new APIError(404, {
+        throw new APIError(422, {
             message: "Account not found",
         });
     }
 
     const { hashedPassword, userId, providerUserId } = accountRecord;
-
-    if ((await verify(hashedPassword, password)) === false) {
-        await prisma.auditLog.create({
-            data: {
-                event: "LOGIN_FAILED",
-                ipAddress,
-                userAgent,
-                user: {
-                    connect: {
-                        id: userId,
-                    },
-                },
-            },
-            select: {
-                id: true,
-            },
-        });
-        throw new APIError(401, {
-            message: "Invalid username or password",
-        });
-    }
 
     const emailAddressRecord = await prisma.applicationIdentifier.findUnique({
         where: {
@@ -77,7 +56,28 @@ export const usernameLoginService = async ({
 
     if (!emailAddressRecord) {
         await delay(50);
-        throw new APIError(401, {
+        throw new APIError(422, {
+            message: "Invalid username or password",
+        });
+    }
+
+    if ((await verify(hashedPassword, password)) === false) {
+        await prisma.auditLog.create({
+            data: {
+                event: "LOGIN_FAILED",
+                ipAddress,
+                userAgent,
+                user: {
+                    connect: {
+                        id: userId,
+                    },
+                },
+            },
+            select: {
+                id: true,
+            },
+        });
+        throw new APIError(422, {
             message: "Invalid username or password",
         });
     }

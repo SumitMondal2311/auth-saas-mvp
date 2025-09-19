@@ -1,8 +1,8 @@
-import { Applications } from "@/components/features/application/applications";
-import { ManageAccountModal } from "@/components/features/user/manage-account-modal";
-import { ProfileMenuTrigger } from "@/components/features/user/profile-menu-trigger";
+import { SettingsDialog } from "@/components/profile/dialog";
 import { Plus } from "lucide-react";
 import Link from "next/link";
+import Applications from "./applications";
+import { ProfileMenuTrigger } from "./profile-menu-trigger";
 
 export default function DashboardPage() {
     return (
@@ -11,7 +11,7 @@ export default function DashboardPage() {
                 <h1 className="font-mono">auth/saas</h1>
                 <ProfileMenuTrigger />
             </section>
-            <ManageAccountModal />
+            <SettingsDialog />
             <section className="grid grid-cols-1 gap-4 overflow-scroll p-4 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
                 <Link
                     href="/application/create"

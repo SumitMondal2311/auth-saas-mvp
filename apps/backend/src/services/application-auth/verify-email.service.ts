@@ -13,17 +13,19 @@ export const verifyEmailService = {
         ipAddress,
         code,
         userAgent,
+        applicationId,
         token,
     }: {
         ipAddress?: string;
         code: string;
         userAgent?: string;
+        applicationId: string;
         token: string;
     }): Promise<{
         refreshToken: string;
         accessToken: string;
     }> => {
-        const data = await redis.get(`email-verification:${token}`);
+        const data = await redis.get(`application-email-verification:${token}`);
         if (!data) {
             throw new APIError(400, {
                 message: "Invalid or expired token",
@@ -50,33 +52,28 @@ export const verifyEmailService = {
         );
 
         await prisma.$transaction(async (tx) => {
-            await tx.user.create({
+            await tx.applicationUser.create({
                 data: {
+                    application: {
+                        connect: {
+                            id: applicationId,
+                        },
+                    },
                     id: userId,
                 },
                 select: {
                     id: true,
                 },
             });
-            await tx.auditLog.create({
-                data: {
-                    ipAddress,
-                    event: "SIGNED_UP",
-                    userAgent,
-                    user: {
-                        connect: {
-                            id: userId,
-                        },
-                    },
-                },
-                select: {
-                    id: true,
-                },
-            });
-            await tx.identifier.create({
+            await tx.applicationIdentifier.create({
                 data: {
                     value: email,
                     isPrimary: true,
+                    application: {
+                        connect: {
+                            id: applicationId,
+                        },
+                    },
                     user: {
                         connect: {
                             id: userId,
@@ -88,11 +85,16 @@ export const verifyEmailService = {
                     id: true,
                 },
             });
-            await tx.auditLog.create({
+            await tx.applicationAuditLog.create({
                 data: {
                     event: "EMAIL_VERIFIED",
                     ipAddress,
                     userAgent,
+                    application: {
+                        connect: {
+                            id: applicationId,
+                        },
+                    },
                     user: {
                         connect: {
                             id: userId,
@@ -103,10 +105,35 @@ export const verifyEmailService = {
                     id: true,
                 },
             });
-            await tx.account.create({
+            await tx.applicationAuditLog.create({
+                data: {
+                    ipAddress,
+                    event: "SIGNED_UP",
+                    userAgent,
+                    application: {
+                        connect: {
+                            id: applicationId,
+                        },
+                    },
+                    user: {
+                        connect: {
+                            id: userId,
+                        },
+                    },
+                },
+                select: {
+                    id: true,
+                },
+            });
+            await tx.applicationAccount.create({
                 data: {
                     providerUserId: email,
                     hashedPassword,
+                    application: {
+                        connect: {
+                            id: applicationId,
+                        },
+                    },
                     user: {
                         connect: {
                             id: userId,
@@ -117,13 +144,18 @@ export const verifyEmailService = {
                     id: true,
                 },
             });
-            await tx.session.create({
+            await tx.applicationSession.create({
                 data: {
                     id: sessionId,
                     expiresAt: addDurationToNow(env.REFRESH_TOKEN_EXPIRY * 1000),
                     ipAddress,
                     userAgent,
                     refreshTokenId,
+                    application: {
+                        connect: {
+                            id: applicationId,
+                        },
+                    },
                     user: {
                         connect: {
                             id: userId,
@@ -134,11 +166,16 @@ export const verifyEmailService = {
                     id: true,
                 },
             });
-            await tx.auditLog.create({
+            await tx.applicationAuditLog.create({
                 data: {
                     ipAddress,
                     event: "LOGGED_IN",
                     userAgent,
+                    application: {
+                        connect: {
+                            id: applicationId,
+                        },
+                    },
                     user: {
                         connect: {
                             id: userId,
@@ -165,7 +202,7 @@ export const verifyEmailService = {
         };
     },
     GET: async (token: string): Promise<string> => {
-        const data = await redis.get(`email-verification:${token}`);
+        const data = await redis.get(`application-email-verification:${token}`);
         if (!data) {
             throw new APIError(422, {
                 message: "Invalid or expired token",

@@ -5,7 +5,7 @@ import { APIError } from "../../utils/api-error.js";
 import { handleAsync } from "../../utils/handle-async.js";
 
 const createApplicationControllerSync = async (req: Request, res: Response, next: NextFunction) => {
-    const data = req.activeSession;
+    const data = req.activeSessionInfo;
     if (!data) {
         return next(
             new APIError(401, {

@@ -12,7 +12,7 @@ declare module "express" {
     }
 }
 
-const authMiddlewareSync = async (req: Request, _res: Response, next: NextFunction) => {
+const applicationAuthMiddlewareSync = async (req: Request, _res: Response, next: NextFunction) => {
     const authHeader = req.headers["authorization"];
     if (!authHeader) {
         return next(
@@ -49,4 +49,4 @@ const authMiddlewareSync = async (req: Request, _res: Response, next: NextFuncti
     next();
 };
 
-export const authMiddleware = handleAsync(authMiddlewareSync);
+export const applicationAuthMiddleware = handleAsync(applicationAuthMiddlewareSync);

@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import parsePhoneNumberFromString, { CountryCode } from "libphonenumber-js";
+import parsePhoneNumberFromString from "libphonenumber-js";
 import { IS_PRODUCTION } from "../../configs/constants.js";
 import { env } from "../../configs/env.js";
 import { emailPasswordSchema, usernamePasswordSchema } from "../../configs/schemas.js";
@@ -25,15 +25,14 @@ const loginControllerSync = async (req: Request, res: Response, next: NextFuncti
     const ipAddress = normalizedIP(req.ip || "unknown");
     const userAgent = req.headers["user-agent"];
 
-    const { strategy, countryCode, phoneNumber, emailOrUsername } = req.body as {
-        countryCode: CountryCode;
+    const { strategy, phoneNumber, emailOrUsername } = req.body as {
         phoneNumber: string;
         strategy: "phone" | "email_or_username";
         emailOrUsername: string;
     };
 
     if (strategy === "phone" && loginOptions.phone) {
-        const parsed = parsePhoneNumberFromString(phoneNumber, countryCode);
+        const parsed = parsePhoneNumberFromString(phoneNumber);
         if (parsed) {
             if (parsed.isValid()) {
                 const token = await phoneLoginService({

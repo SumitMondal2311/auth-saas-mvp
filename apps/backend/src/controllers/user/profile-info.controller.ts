@@ -3,7 +3,7 @@ import { profileInfoService } from "../../services/user/profile-info.service.js"
 import { APIError } from "../../utils/api-error.js";
 
 export const profileInfoController = async (req: Request, res: Response, next: NextFunction) => {
-    const data = req.activeSession;
+    const data = req.activeSessionInfo;
     if (!data) {
         return next(
             new APIError(401, {

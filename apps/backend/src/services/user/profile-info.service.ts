@@ -8,7 +8,7 @@ export const profileInfoService = async (
         isPrimary: boolean;
         value: string;
     }[];
-    accounts: {
+    connectedAccounts: {
         providerUserId: string;
         provider: AccountProvider;
     }[];
@@ -48,7 +48,7 @@ export const profileInfoService = async (
         emailAddresses: userRecord.identifiers
             .filter((identifier) => identifier.type === "EMAIL")
             .map(({ type: _, ...rest }) => rest),
-        accounts: userRecord.accounts,
+        connectedAccounts: userRecord.accounts.filter((account) => account.provider !== "LOCAL"),
         phoneNumbers: userRecord.identifiers
             .filter((identifier) => identifier.type === "PHONE")
             .map(({ type: _, ...rest }) => rest),

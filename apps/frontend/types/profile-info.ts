@@ -3,8 +3,8 @@ export type ProfileInfo = {
         value: string;
         isPrimary: boolean;
     }[];
-    accounts: {
-        provider: "GOOGLE" | "LOCAL" | "GITHUB";
+    connectedAccounts: {
+        provider: "GOOGLE" | "GITHUB";
         providerUserId: string;
     }[];
     phoneNumbers: {

@@ -1,10 +1,19 @@
 import { NextFunction, Request, Response } from "express";
-import { logoutService } from "../../services/auth/logout.service.js";
+import { logoutService } from "../../services/application-auth/logout.service.js";
 import { APIError } from "../../utils/api-error.js";
 import { handleAsync } from "../../utils/handle-async.js";
 import { normalizedIP } from "../../utils/normalized-ip.js";
 
 const logoutControllerSync = async (req: Request, res: Response, next: NextFunction) => {
+    const { applicationInfo } = req;
+    if (!applicationInfo) {
+        return next(
+            new APIError(401, {
+                message: "Unauthorized",
+            })
+        );
+    }
+
     const refreshToken = req.cookies["__auth-session"] as string;
     if (!refreshToken) {
         return next(
@@ -26,10 +35,11 @@ const logoutControllerSync = async (req: Request, res: Response, next: NextFunct
     const { id, userId } = data;
 
     await logoutService({
-        ipAddress: normalizedIP(req.ip || "unknown"),
         userAgent: req.headers["user-agent"],
+        ipAddress: normalizedIP(req.ip || "unknown"),
         refreshToken,
         userId,
+        applicationId: applicationInfo.id,
         sessionId: id,
     });
 

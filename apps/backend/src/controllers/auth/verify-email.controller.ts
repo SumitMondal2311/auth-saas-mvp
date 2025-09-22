@@ -7,62 +7,37 @@ import { APIError } from "../../utils/api-error.js";
 import { handleAsync } from "../../utils/handle-async.js";
 import { normalizedIP } from "../../utils/normalized-ip.js";
 
-export const verifyEmailController = {
-    GET: handleAsync(async (req: Request, res: Response, next: NextFunction) => {
-        const token = req.cookies["__email-verification"] as string;
-        if (!token) {
-            return next(
-                new APIError(400, {
-                    message: "Missing token",
-                })
-            );
-        }
-
-        const email = await verifyEmailService.GET(token);
-
-        res.status(200).json({
-            email,
-        });
-    }),
-    POST: handleAsync(async (req: Request, res: Response, next: NextFunction) => {
-        const token = req.cookies["__email-verification"] as string;
-        if (!token) {
-            return next(
-                new APIError(400, {
-                    message: "Missing token",
-                })
-            );
-        }
-
-        const parsedSchema = verificationCodeSchema.safeParse(req.body);
-        if (!parsedSchema.success) {
-            return next(
-                new APIError(400, {
-                    message: parsedSchema.error.issues[0].message,
-                })
-            );
-        }
-
-        const { code } = parsedSchema.data;
-
-        const { refreshToken, accessToken } = await verifyEmailService.POST({
-            userAgent: req.headers["user-agent"],
-            code,
-            ipAddress: normalizedIP(req.ip || "unknown"),
-            token,
-        });
-
-        res.status(200)
-            .cookie("__auth-session", refreshToken, {
-                secure: IS_PRODUCTION,
-                httpOnly: true,
-                sameSite: IS_PRODUCTION ? "none" : "lax",
-                maxAge: env.REFRESH_TOKEN_EXPIRY * 1000,
+const verifyEmailControllerSync = async (req: Request, res: Response, next: NextFunction) => {
+    const parsedSchema = verificationCodeSchema.safeParse(req.body);
+    if (!parsedSchema.success) {
+        return next(
+            new APIError(400, {
+                message: parsedSchema.error.issues[0].message,
             })
-            .clearCookie("__email-verification")
-            .json({
-                accessToken,
-                message: "Email verified successfully",
-            });
-    }),
+        );
+    }
+
+    const { code } = parsedSchema.data;
+
+    const { refreshToken, accessToken } = await verifyEmailService({
+        userAgent: req.headers["user-agent"],
+        code,
+        ipAddress: normalizedIP(req.ip || "unknown"),
+        token: req.emailVerificationFlowToken || "invalid-token",
+    });
+
+    res.status(200)
+        .cookie("__auth-session", refreshToken, {
+            secure: IS_PRODUCTION,
+            httpOnly: true,
+            sameSite: IS_PRODUCTION ? "none" : "lax",
+            maxAge: env.REFRESH_TOKEN_EXPIRY * 1000,
+        })
+        .clearCookie("__email-verification")
+        .json({
+            accessToken,
+            message: "Email verified successfully",
+        });
 };
+
+export const verifyEmailController = handleAsync(verifyEmailControllerSync);

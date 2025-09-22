@@ -4,12 +4,12 @@ import { config as nodeConfig } from "./packages/eslint-config/node.js";
 /** @type {import("eslint").Linter.Config[]} */
 
 export default [
-    ...nodeConfig.map((cfg) => ({
-        ...cfg,
+    ...nodeConfig.map((config) => ({
+        ...config,
         files: ["apps/backend/src/**/*.ts", "packages/database/src/**/*.ts"],
     })),
-    ...nextConfig.map((cfg) => ({
-        ...cfg,
+    ...nextConfig.map((config) => ({
+        ...config,
         files: ["apps/frontend/**/*.{ts,tsx}"],
     })),
     {

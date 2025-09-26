@@ -4,16 +4,11 @@ generator client {
 }
 
 datasource db {
-  provider = "postgres"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-// ====================================================== //
-
-enum IdentifierType {
-  EMAIL
-  PHONE
-}
+// ======================= ENUMERATIONS ======================= //
 
 enum UserStatus {
   SUSPENDED
@@ -21,215 +16,206 @@ enum UserStatus {
   DELETION_PENDING
 }
 
-enum AccountProvider {
+enum OAuthProvider {
   GITHUB
-  LOCAL
   GOOGLE
 }
 
-enum LoginMethod {
-  PASSWORD
-  OTP
-  SOCIAL
-  MAGIC_LINK
-}
-
-enum AuditEvent {
-  SIGNED_UP
-  EMAIL_VERIFIED
-  LOGGED_IN
-  TWO_FACTOR_ENABLED
-  TWO_FACTOR_DISABLED
-  ACCOUNT_ADDED
-  ACCOUNT_DELETED
-  EMAIL_ADDED
-  EMAIL_DELETED
-  LOGGED_OUT
-  LOGIN_FAILED
-  PASSWORD_RESET_INITIATED
-  PASSWORD_RESET_COMPLETED
-  MAGIC_LINK_SENT
-  MAGIC_LINK_USED
-}
-
-// ====================================================== //
+// =================== PLATFORM-LEVEL MODELS =================== //
 
 model User {
-  id           String     @id() @default(uuid()) @db.Uuid
-  is2faEnabled Boolean    @default(false)
-  updatedAt    DateTime   @updatedAt
-  status       UserStatus @default(ACTIVE)
-  createdAt    DateTime   @default(now())
+  id        String     @id @default(uuid()) @db.Uuid
+  updatedAt DateTime   @updatedAt
+  status    UserStatus @default(ACTIVE)
+  createdAt DateTime   @default(now())
 
-  applications Application[]
-  accounts     Account[]
-  identifiers  Identifier[]
-  sessions     Session[]
-  auditLogs    AuditLog[]
+  accounts Account[]
 }
 
 model Account {
-  id             String          @id @default(uuid()) @db.Uuid
-  providerUserId String          @unique
-  provider       AccountProvider @default(LOCAL)
-  userId         String          @db.Uuid
-  hashedPassword String?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  id           String   @id @default(uuid()) @db.Uuid
+  passwordHash String?
+  imageUrl     String?
+  lastName     String?
+  userId       String   @db.Uuid
+  firstName    String?
+  is2faEnabled Boolean  @default(false)
+  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([providerUserId, provider])
+  oauthAccounts  OAuthAccount[]
+  phoneNumbers   Phone[]
+  sessions       Session[]
+  emailAddresses Email[]
+  applications   Application[]
 }
 
-model Identifier {
-  id         String         @id @default(uuid()) @db.Uuid
-  isVerified Boolean        @default(true)
-  value      String         @unique
-  type       IdentifierType
-  userId     String         @db.Uuid
+model Email {
+  id         String   @id @default(uuid()) @db.Uuid
+  isVerified Boolean  @default(true)
+  accountId  String   @db.Uuid
+  address    String   @unique
   isPrimary  Boolean
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+}
 
-  @@unique([value, type])
+model Phone {
+  id         String   @id @default(uuid()) @db.Uuid
+  isVerified Boolean  @default(false)
+  accountId  String   @db.Uuid
+  number     String   @unique
+  isPrimary  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
 }
 
 model Session {
-  id             String      @id @default(uuid()) @db.Uuid
-  loginMethod    LoginMethod @default(PASSWORD)
-  userId         String      @db.Uuid
-  ipAddress      String?
-  userAgent      String?
-  refreshTokenId String      @unique
+  id             String   @id @default(uuid()) @db.Uuid
+  accountId      String   @db.Uuid
+  refreshTokenId String   @unique
+  userAgent      String   @default("unknown")
+  ipAddress      String   @default("unknown")
   expiresAt      DateTime
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
 }
 
-model AuditLog {
-  id        String     @id @default(uuid()) @db.Uuid
-  ipAddress String?
-  userAgent String?
-  userId    String     @db.Uuid
-  event     AuditEvent
-  metadata  Json?
-  createdAt DateTime   @default(now())
+model OAuthAccount {
+  id             String        @id @default(uuid()) @db.Uuid
+  accountId      String        @db.Uuid
+  provider       OAuthProvider
+  providerUserId String
+  createdAt      DateTime      @default(now())
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerUserId])
 }
-
-// ====================================================== //
 
 model Application {
-  id        String   @id() @default(uuid()) @db.Uuid
-  publicKey String   @unique
-  secretKey String   @unique
-  name      String
-  userId    String   @db.Uuid
-  github    Boolean  @default(false)
-  mobile    Boolean  @default(false)
-  username  Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id             String   @id @default(uuid()) @db.Uuid
+  accountId      String   @db.Uuid
+  secretKey      String   @unique
+  publishableKey String   @unique
+  name           String
+  username       Boolean  @default(false)
+  google         Boolean  @default(false)
+  github         Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  account Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
 
-  accounts    ApplicationAccount[]
-  users       ApplicationUser[]
-  identifiers ApplicationIdentifier[]
-  sessions    ApplicationSession[]
-  auditLogs   ApplicationAuditLog[]
+  accounts       ApplicationAccount[]
+  users          ApplicationUser[]
+  oauthAccounts  ApplicationOAuthAccount[]
+  sessions       ApplicationSession[]
+  emailAddresses ApplicationEmail[]
+  phoneNumbers   ApplicationPhone[]
 }
 
-enum TwoFactorMethod {
-  NONE
-  SMS
-  EMAIL
-}
+// =================== APPLICATION-LEVEL MODELS =================== //
 
 model ApplicationUser {
-  id              String          @id() @default(uuid()) @db.Uuid
-  applicationId   String          @db.Uuid
-  twoFactorMethod TwoFactorMethod @default(NONE)
-  status          UserStatus      @default(ACTIVE)
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  id            String     @id @default(uuid()) @db.Uuid
+  applicationId String     @db.Uuid
+  status        UserStatus @default(ACTIVE)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
 
   application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
-  accounts    ApplicationAccount[]
-  identifiers ApplicationIdentifier[]
-  sessions    ApplicationSession[]
-  auditLogs   ApplicationAuditLog[]
+  accounts ApplicationAccount[]
 }
 
 model ApplicationAccount {
-  id             String          @id @default(uuid()) @db.Uuid
-  applicationId  String          @db.Uuid
-  providerUserId String
-  provider       AccountProvider @default(LOCAL)
-  username       String?         @unique
-  userId         String          @db.Uuid
-  hashedPassword String?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
+  id            String   @id @default(uuid()) @db.Uuid
+  applicationId String   @db.Uuid
+  username      String?  @unique
+  lastName      String?
+  imageUrl      String?
+  firstName     String?
+  userId        String   @db.Uuid
+  passwordHash  String?
+  is2faEnabled  Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  user        ApplicationUser @relation(fields: [userId], references: [id], onDelete: Cascade)
   application Application     @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  user        ApplicationUser @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([providerUserId, provider, applicationId])
+  accounts       ApplicationOAuthAccount[]
+  emailAddresses ApplicationEmail[]
+  sessions       ApplicationSession[]
+  phoneNumbers   ApplicationPhone[]
 }
 
-model ApplicationIdentifier {
-  id            String         @id @default(uuid()) @db.Uuid
-  applicationId String         @db.Uuid
-  isVerified    Boolean        @default(true)
-  value         String
-  type          IdentifierType
-  userId        String         @db.Uuid
+model ApplicationEmail {
+  id            String   @id @default(uuid()) @db.Uuid
+  accountId     String   @db.Uuid
+  applicationId String   @db.Uuid
+  isVerified    Boolean  @default(true)
+  address       String
   isPrimary     Boolean
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
-  user        ApplicationUser @relation(fields: [userId], references: [id], onDelete: Cascade)
-  application Application     @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  account     ApplicationAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  application Application        @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
-  @@unique([value, type, applicationId])
+  @@unique([address, applicationId])
+}
+
+model ApplicationPhone {
+  id            String   @id @default(uuid()) @db.Uuid
+  accountId     String   @db.Uuid
+  applicationId String   @db.Uuid
+  isVerified    Boolean  @default(true)
+  number        String
+  isPrimary     Boolean
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  account     ApplicationAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  application Application        @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@unique([number, applicationId])
 }
 
 model ApplicationSession {
-  id             String      @id @default(uuid()) @db.Uuid
-  applicationId  String      @db.Uuid
-  userAgent      String?
-  ipAddress      String?
-  loginMethod    LoginMethod @default(PASSWORD)
-  refreshTokenId String      @unique
-  userId         String      @db.Uuid
+  id             String   @id @default(uuid()) @db.Uuid
+  accountId      String   @db.Uuid
+  refreshTokenId String   @unique
+  userAgent      String   @default("unknown")
+  ipAddress      String   @default("unknown")
+  applicationId  String   @db.Uuid
   expiresAt      DateTime
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
-  user        ApplicationUser @relation(fields: [userId], references: [id], onDelete: Cascade)
-  application Application     @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  account     ApplicationAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  application Application        @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 }
 
-model ApplicationAuditLog {
-  id            String     @id @default(uuid()) @db.Uuid
-  applicationId String     @db.Uuid
-  userId        String     @db.Uuid
-  ipAddress     String?
-  metadata      Json?
-  event         AuditEvent
-  userAgent     String?
-  createdAt     DateTime   @default(now())
+model ApplicationOAuthAccount {
+  id             String        @id @default(uuid()) @db.Uuid
+  accountId      String        @db.Uuid
+  applicationId  String        @db.Uuid
+  provider       OAuthProvider
+  providerUserId String
+  createdAt      DateTime      @default(now())
 
-  user        ApplicationUser @relation(fields: [userId], references: [id], onDelete: Cascade)
-  application Application     @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  account     ApplicationAccount @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  application Application        @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@unique([providerUserId, provider, applicationId])
 }
-
-// ====================================================== //

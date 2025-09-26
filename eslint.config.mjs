@@ -6,11 +6,11 @@ import { config as nodeConfig } from "./packages/eslint-config/node.js";
 export default [
     ...nodeConfig.map((config) => ({
         ...config,
-        files: ["apps/backend/src/**/*.ts", "packages/database/src/**/*.ts"],
+        files: ["apps/api/src/**/*.ts", "packages/database/src/**/*.ts"],
     })),
     ...nextConfig.map((config) => ({
         ...config,
-        files: ["apps/frontend/**/*.{ts,tsx}"],
+        files: ["apps/web/**/*.{ts,tsx}"],
     })),
     {
         ignores: [

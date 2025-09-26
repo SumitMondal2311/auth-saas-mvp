@@ -5,25 +5,26 @@
         "build": {
             "dependsOn": ["^build"]
         },
-        "backend#build": {
+        "api#build": {
             "dependsOn": ["^build"],
             "env": [
-                "PHONE_LOGIN_CODE_EXPIRY",
+                "MAX_SESSION_PER_ACCOUNT",
                 "DATABASE_MAX_RETRIES",
-                "SESSION_LIMIT",
                 "PORT",
+                "MAX_SESSION_AGE",
                 "API_ORIGIN",
                 "WEB_ORIGIN",
                 "DATABASE_URL",
                 "JWT_KID",
                 "REFRESH_TOKEN_EXPIRY",
                 "REDIS_URL",
-                "EMAIL_VERIFICATION_CODE_EXPIRY",
+                "HMAC_SECRET_KEY",
+                "CLIENT_EXPIRY",
                 "ACCESS_TOKEN_EXPIRY"
             ],
             "outputs": ["dist/**"]
         },
-        "frontend#build": {
+        "web#build": {
             "dependsOn": ["^build"],
             "env": ["NEXT_PUBLIC_BASE_URL"],
             "outputs": [".next/**", "!.next/cache/**"]

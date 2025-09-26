@@ -45,7 +45,7 @@ export const config = [
             },
             parserOptions: {
                 tsconfigRootDir: path.resolve(import.meta.dirname, "../.."),
-                project: ["apps/frontend/tsconfig.json"],
+                project: ["apps/web/tsconfig.json"],
             },
         },
         settings: {

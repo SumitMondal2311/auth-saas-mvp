@@ -9,7 +9,7 @@ export const config = [
     {
         languageOptions: {
             parserOptions: {
-                project: ["apps/backend/tsconfig.json", "packages/database/tsconfig.json"],
+                project: ["apps/api/tsconfig.json", "packages/database/tsconfig.json"],
                 tsconfigRootDir: path.resolve(import.meta.dirname, "../.."),
             },
             globals: {
